@@ -181,15 +181,20 @@
       <h2>Expenses</h2>
       <p>Household and family expense tracking.</p>
     </div>    
-    <div class="card disabled family">
+    <a href="payments.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>       
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg>
+        </div>
       </div>
       <h2>Family Details</h2>
-      <p>Important dates, contacts, and details.</p>
-    </div>
+      <p>Track bond payments.</p>
+      <div class="card-stat" id="paymentsStat">Loading…</div>
+      <span class="card-cta">
+        Open bond Payments
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </span>
+    </a>
     <a href="payments.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
@@ -197,10 +202,10 @@
         </div>
       </div>
       <h2>Bond</h2>
-      <p>Track payments.</p>
+      <p>Track bond payments.</p>
       <div class="card-stat" id="paymentsStat">Loading…</div>
       <span class="card-cta">
-        Open Payments
+        Open bond Payments
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
       </span>
     </a>
