@@ -21,7 +21,7 @@
 (function () {
   const AUTH_KEY = 'familyLedgerAuthed';
   const USERNAME = 'family';
-  const PASSWORD_HASH = 'REPLACE_WITH_YOUR_OWN_HASH';
+  const PASSWORD_HASH = 'a4a6326871ed4fd887fca327c377479d8247796d8c0f9031f50d36afa53c57de';
 
   async function sha256Hex(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
