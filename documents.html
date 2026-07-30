@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Ledger — Documents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f1e;
+    --bg-elevated:#0d1426;
+    --panel:#121b31;
+    --panel-alt:#16213b;
+    --border:#22304f;
+    --border-soft:rgba(255,255,255,0.06);
+    --text-primary:#eaf0fb;
+    --text-secondary:#9aa8c7;
+    --text-muted:#66759c;
+    --accent:#4c7cf0;
+    --accent-hover:#6690ff;
+    --accent-soft:rgba(76,124,240,0.14);
+    --success:#33d6a6;
+    --success-soft:rgba(51,214,166,0.12);
+    --warning:#f0b84c;
+    --warning-soft:rgba(240,184,76,0.12);
+    --danger:#f0664c;
+    --danger-soft:rgba(240,102,76,0.13);
+    --radius-sm:8px;
+    --radius-md:12px;
+    --radius-lg:18px;
+    --shadow-soft: 0 8px 24px rgba(0,0,0,0.35);
+    --shadow-lift: 0 16px 40px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(76,124,240,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(51,214,166,0.05), transparent 60%),
+      var(--bg);
+    color:var(--text-primary);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{font-family:'Sora', sans-serif;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  .app{display:grid; grid-template-columns:260px 1fr; min-height:100vh;}
+
+  /* Sidebar (shared with Payments page) */
+  .sidebar{
+    background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+    border-right:1px solid var(--border-soft);
+    padding:28px 20px; display:flex; flex-direction:column; gap:32px; position:relative;
+  }
+  .sidebar::before{
+    content:""; position:absolute; top:0; left:0; bottom:0; width:2px;
+    background:linear-gradient(180deg, var(--accent), transparent 70%); opacity:0.6;
+  }
+  .brand{display:flex; align-items:center; gap:12px; padding:0 4px;}
+  .brand-mark{
+    width:40px; height:40px; border-radius:11px;
+    background:linear-gradient(155deg, var(--accent), #2a4fc4);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(76,124,240,0.35); flex-shrink:0;
+  }
+  .brand-mark svg{width:20px; height:20px;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.25;}
+  .brand-text strong{font-family:'Sora'; font-size:15.5px; font-weight:700; letter-spacing:0.2px;}
+  .brand-text span{font-size:11.5px; color:var(--text-muted); font-weight:500;}
+  .nav{display:flex; flex-direction:column; gap:4px;}
+  .nav-label{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px;
+    color:var(--text-muted); font-weight:600; padding:0 12px; margin-bottom:6px;
+  }
+  .nav-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; border-radius:8px; font-size:14px; font-weight:500;
+    color:var(--text-secondary); cursor:pointer; transition:background .15s ease, color .15s ease;
+    border:1px solid transparent; text-decoration:none;
+  }
+  .nav-item .left{display:flex; align-items:center; gap:10px;}
+  .nav-item svg{width:17px; height:17px; opacity:0.85;}
+  .nav-item.active{background:var(--accent-soft); color:var(--text-primary); border-color:rgba(76,124,240,0.35);}
+  .nav-item.disabled{cursor:not-allowed; color:var(--text-muted); opacity:0.6;}
+  .nav-item.disabled:hover{background:none;}
+  .nav-item:not(.disabled):not(.active):hover{background:rgba(255,255,255,0.03); color:var(--text-primary);}
+  .soon-tag{
+    font-size:9.5px; font-weight:700; letter-spacing:0.4px; background:rgba(255,255,255,0.05);
+    color:var(--text-muted); padding:2px 6px; border-radius:5px; text-transform:uppercase;
+  }
+  .sidebar-footer{
+    margin-top:auto; padding-top:18px; border-top:1px dashed var(--border);
+    font-size:11.5px; color:var(--text-muted); display:flex; flex-direction:column; gap:4px;
+  }
+
+  .main{padding:32px 40px 60px; max-width:1280px; width:100%;}
+  .topbar{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:24px;
+    margin-bottom:28px; flex-wrap:wrap;
+  }
+  .topbar h1{font-size:26px; font-weight:700; margin:0 0 6px; letter-spacing:-0.3px;}
+  .topbar p{margin:0; color:var(--text-secondary); font-size:14px; max-width:50ch;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px;
+    border:1px solid transparent; font-size:13.5px; font-weight:600; cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  .btn svg{width:16px; height:16px;}
+  .btn-primary{
+    background:linear-gradient(155deg, var(--accent-hover), var(--accent)); color:#08101f;
+    box-shadow:0 8px 20px rgba(76,124,240,0.28);
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 24px rgba(76,124,240,0.38);}
+  .btn-primary:disabled{opacity:0.5; cursor:not-allowed; transform:none;}
+  .btn-ghost{background:var(--panel); color:var(--text-secondary); border-color:var(--border);}
+  .btn-ghost:hover{color:var(--text-primary); border-color:rgba(255,255,255,0.18); background:var(--panel-alt);}
+  .actions-row{display:flex; gap:10px; flex-shrink:0;}
+
+  /* auth gate */
+  .auth-wrap{
+    max-width:380px; margin:80px auto; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:32px;
+    box-shadow:var(--shadow-soft);
+  }
+  .auth-wrap h2{margin:0 0 6px; font-size:19px;}
+  .auth-wrap p{margin:0 0 22px; color:var(--text-secondary); font-size:13.5px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px;}
+  input, select{
+    background:var(--panel); border:1px solid var(--border); color:var(--text-primary);
+    padding:10px 12px; border-radius:9px; font-size:13.5px; width:100%;
+  }
+  input::placeholder{color:var(--text-muted);}
+  select{cursor:pointer;}
+  .auth-error{
+    background:var(--danger-soft); color:var(--danger); font-size:12.5px; padding:10px 12px;
+    border-radius:8px; margin-bottom:14px; display:none;
+  }
+  .auth-toggle{margin-top:16px; text-align:center; font-size:12.5px; color:var(--text-muted);}
+  .auth-toggle a{color:var(--accent-hover); cursor:pointer; font-weight:600; text-decoration:none;}
+  .auth-wrap .btn-primary{width:100%; justify-content:center;}
+
+  /* config warning banner */
+  .config-banner{
+    background:var(--warning-soft); border:1px solid rgba(240,184,76,0.3); color:var(--warning);
+    padding:14px 18px; border-radius:10px; font-size:13px; margin-bottom:22px; display:none;
+    line-height:1.5;
+  }
+  .config-banner code{background:rgba(0,0,0,0.25); padding:1px 6px; border-radius:5px; font-family:'JetBrains Mono';}
+
+  /* stats + filters */
+  .stats{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:14px;}
+  .stat-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:18px 20px;
+  }
+  .stat-card .icon-wrap{
+    width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px; background:var(--accent-soft); color:var(--accent-hover);
+  }
+  .stat-card .icon-wrap svg{width:16px; height:16px;}
+  .stat-card .label{font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;}
+  .stat-card .value{font-family:'Sora'; font-size:22px; font-weight:700; margin-top:6px;}
+  .stat-card .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
+
+  .ledger-stitch{
+    height:1px; margin:26px 0 24px;
+    background-image:linear-gradient(90deg, var(--border) 50%, transparent 50%);
+    background-size:10px 1px; background-repeat:repeat-x; opacity:0.7;
+  }
+
+  .filters{display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap;}
+  .search-wrap{position:relative; flex:1; min-width:220px;}
+  .search-wrap svg{
+    position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-muted);
+  }
+  .search-wrap input{padding-left:36px;}
+  select{min-width:170px; width:auto;}
+
+  /* dropzone */
+  .dropzone{
+    border:2px dashed var(--border); border-radius:var(--radius-md); padding:34px 20px;
+    text-align:center; margin-bottom:24px; transition:border-color .15s ease, background .15s ease;
+    background:var(--panel);
+  }
+  .dropzone.drag{border-color:var(--accent); background:var(--accent-soft);}
+  .dropzone svg{width:30px; height:30px; color:var(--text-muted); margin-bottom:10px;}
+  .dropzone p{margin:0 0 4px; font-size:14px; color:var(--text-secondary); font-weight:500;}
+  .dropzone span{font-size:12px; color:var(--text-muted);}
+  .dropzone .browse{color:var(--accent-hover); font-weight:600; cursor:pointer;}
+  .dropzone input[type=file]{display:none;}
+
+  /* upload queue */
+  .upload-row{
+    display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--panel-alt);
+    border:1px solid var(--border-soft); border-radius:9px; margin-bottom:8px; font-size:13px;
+  }
+  .upload-row .name{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .upload-row .bar{width:80px; height:5px; background:var(--border); border-radius:3px; overflow:hidden;}
+  .upload-row .bar-fill{height:100%; background:var(--accent); width:0%; transition:width .2s ease;}
+  .upload-row .pct{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-muted); width:34px; text-align:right;}
+
+  /* doc grid */
+  .doc-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:16px;
+  }
+  .doc-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); overflow:hidden;
+    display:flex; flex-direction:column; transition:border-color .15s ease, transform .15s ease;
+  }
+  .doc-card:hover{border-color:rgba(255,255,255,0.15); transform:translateY(-2px);}
+  .doc-thumb{
+    height:130px; background:var(--bg-elevated); display:flex; align-items:center; justify-content:center;
+    overflow:hidden; border-bottom:1px solid var(--border-soft);
+  }
+  .doc-thumb img{width:100%; height:100%; object-fit:cover;}
+  .doc-thumb svg{width:34px; height:34px; color:var(--text-muted);}
+  .doc-body{padding:14px 16px; display:flex; flex-direction:column; gap:6px; flex:1;}
+  .doc-body .fname{font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .doc-body .meta{font-size:11.5px; color:var(--text-muted); display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
+  .cat-pill{
+    display:inline-block; padding:3px 9px; border-radius:20px; font-size:10.5px; font-weight:600;
+    background:var(--accent-soft); color:var(--accent-hover);
+  }
+  .doc-footer{
+    display:flex; justify-content:space-between; align-items:center; padding:10px 16px;
+    border-top:1px solid var(--border-soft);
+  }
+  .doc-footer .uploader{font-size:11px; color:var(--text-muted);}
+  .row-actions{display:flex; gap:4px;}
+  .icon-btn{
+    width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer;
+    transition:background .12s ease, color .12s ease, border-color .12s ease; text-decoration:none;
+  }
+  .icon-btn svg{width:14px; height:14px;}
+  .icon-btn:hover{background:var(--panel); color:var(--text-primary); border-color:var(--border);}
+  .icon-btn.danger:hover{color:var(--danger); border-color:rgba(240,102,76,0.35); background:var(--danger-soft);}
+
+  .empty-state{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:60px 20px; text-align:center; color:var(--text-muted); grid-column:1/-1;
+  }
+  .empty-state svg{width:36px; height:36px; margin-bottom:12px; opacity:0.5;}
+  .empty-state h3{margin:0 0 6px; color:var(--text-secondary); font-size:15px;}
+  .empty-state p{margin:0; font-size:13px;}
+
+  .toast{
+    position:fixed; bottom:26px; right:26px; background:var(--panel-alt); border:1px solid var(--border);
+    padding:13px 18px; border-radius:10px; font-size:13.5px; display:flex; align-items:center; gap:10px;
+    box-shadow:var(--shadow-lift); transform:translateY(20px); opacity:0; transition:all .25s ease; z-index:60;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+  .toast svg{width:16px; height:16px; color:var(--success); flex-shrink:0;}
+
+  .userbar{display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--text-muted);}
+  .userbar strong{color:var(--text-secondary);}
+  .userbar button{
+    background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12.5px;
+    text-decoration:underline; padding:0;
+  }
+  .userbar button:hover{color:var(--danger);}
+
+  footer.note{margin-top:30px; color:var(--text-muted); font-size:12px; text-align:center;}
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{flex-direction:row; align-items:center; padding:16px 20px; gap:16px; overflow-x:auto;}
+    .sidebar::before{display:none;}
+    .nav{flex-direction:row;}
+    .nav-label{display:none;}
+    .sidebar-footer{display:none;}
+    .main{padding:24px 18px 50px;}
+    .stats{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== AUTH GATE ============== -->
+<div class="auth-wrap" id="authWrap">
+  <h2 id="authTitle">Sign in to the family vault</h2>
+  <p id="authSub">Only your family's accounts can view or upload documents here.</p>
+  <div class="auth-error" id="authError"></div>
+  <div class="field">
+    <label for="authEmail">Email</label>
+    <input type="email" id="authEmail" placeholder="you@example.com">
+  </div>
+  <div class="field">
+    <label for="authPass">Password</label>
+    <input type="password" id="authPass" placeholder="••••••••">
+  </div>
+  <button class="btn btn-primary" id="authSubmit">Sign in</button>
+  <div class="auth-toggle" id="authToggle">New here? <a id="authSwitchLink">Create a family account</a></div>
+</div>
+
+<!-- ============== APP (hidden until signed in) ============== -->
+<div class="app" id="appWrap" style="display:none;">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
+      </div>
+      <div class="brand-text">
+        <strong>Family Ledger</strong>
+        <span>Documents</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Workspace</div>
+      <a href="index.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg>
+          Payments
+        </div>
+      </a>
+      <div class="nav-item disabled">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Expenses
+        </div>
+        <span class="soon-tag">Soon</span>
+      </div>
+      <a href="documents.html" class="nav-item active">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          Documents
+        </div>
+      </a>
+      <div class="nav-item disabled">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          Family Details
+        </div>
+        <span class="soon-tag">Soon</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>Family Ledger · v0.1</span>
+      <span>Shared vault · Firebase-backed</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Family Documents</h1>
+        <p>Proof of payments, IDs, insurance papers, and anything else worth keeping safe — visible to your whole family.</p>
+      </div>
+      <div class="actions-row">
+        <div class="userbar">
+          Signed in as <strong id="userEmail">—</strong>
+          <button id="signOutBtn">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-banner" id="configBanner">
+      Firebase isn't configured yet — fill in <code>firebaseConfig</code> near the bottom of this file with your project's keys, then reload this page.
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div>
+        <div class="label">Total Documents</div>
+        <div class="value mono" id="statTotal">0</div>
+        <div class="sub">across all categories</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg></div>
+        <div class="label">Proof of Payment</div>
+        <div class="value mono" id="statPop">0</div>
+        <div class="sub">receipts & confirmations</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg></div>
+        <div class="label">ID & Personal</div>
+        <div class="value mono" id="statId">0</div>
+        <div class="sub">IDs, certificates, policies</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="label">Uploaded By</div>
+        <div class="value mono" id="statUploaders">0</div>
+        <div class="sub">family members active</div>
+      </div>
+    </div>
+
+    <div class="ledger-stitch"></div>
+
+    <div class="dropzone" id="dropzone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      <p>Drag files here, or <span class="browse" id="browseLink">browse to upload</span></p>
+      <span>Images, PDFs, and documents · up to 10MB each</span>
+      <input type="file" id="fileInput" multiple>
+      <div class="field" style="max-width:220px; margin:16px auto 0;">
+        <select id="uploadCategory">
+          <option>Proof of Payment</option>
+          <option>ID & Personal</option>
+          <option>Insurance</option>
+          <option>Medical</option>
+          <option>Property</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div id="uploadQueue" style="max-width:420px; margin:14px auto 0; text-align:left;"></div>
+    </div>
+
+    <div class="filters">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Search file name…">
+      </div>
+      <select id="categoryFilter">
+        <option value="all">All categories</option>
+        <option>Proof of Payment</option>
+        <option>ID & Personal</option>
+        <option>Insurance</option>
+        <option>Medical</option>
+        <option>Property</option>
+        <option>Other</option>
+      </select>
+      <select id="sortFilter">
+        <option value="date-desc">Newest first</option>
+        <option value="date-asc">Oldest first</option>
+        <option value="name-asc">Name A–Z</option>
+      </select>
+    </div>
+
+    <div class="doc-grid" id="docGrid"></div>
+
+    <footer class="note">Expenses and Family Details modules are coming soon to this ledger.</footer>
+  </main>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+  <span id="toastText">Saved</span>
+</div>
+
+<!-- ====================================================================
+     FIREBASE SETUP
+     1. Go to https://console.firebase.google.com → Create a project
+     2. Add a Web App inside the project → copy the config object it
+        gives you and paste it into firebaseConfig below.
+     3. In the Firebase console, enable:
+          - Authentication → Sign-in method → Email/Password
+          - Firestore Database → Create database (production mode)
+          - Storage → Get started
+     4. Set the security rules shown in the setup guide I'll send you,
+        so only signed-in family members can read/write.
+     ==================================================================== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot,
+    query, orderBy, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+  // ---- PASTE YOUR FIREBASE CONFIG HERE ----
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  // ------------------------------------------
+
+  const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+  const el = (id) => document.getElementById(id);
+
+  if(!isConfigured){
+    el('configBanner').style.display = 'block';
+    el('authTitle').textContent = 'Firebase not configured';
+    el('authSub').textContent = 'This page needs Firebase project keys before anyone can sign in. See the comment near the bottom of the file.';
+    el('authSubmit').disabled = true;
+  } else {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    let mode = 'signin'; // or 'signup'
+    let docs = [];
+    let unsubscribeDocs = null;
+
+    function showToast(msg){
+      const toast = el('toast');
+      el('toastText').textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+    function escapeHtml(str){
+      return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    }
+    function formatDate(ts){
+      if(!ts) return '—';
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleDateString('en-ZA', {day:'2-digit', month:'short', year:'numeric'});
+    }
+    function formatBytes(bytes){
+      if(!bytes) return '';
+      const kb = bytes / 1024;
+      if(kb < 1024) return kb.toFixed(0) + ' KB';
+      return (kb/1024).toFixed(1) + ' MB';
+    }
+
+    // ---- Auth toggle ----
+    el('authToggle').addEventListener('click', (e) => {
+      if(e.target.id !== 'authSwitchLink' && e.target.tagName !== 'A') return;
+      mode = mode === 'signin' ? 'signup' : 'signin';
+      if(mode === 'signup'){
+        el('authTitle').textContent = 'Create your family account';
+        el('authSub').textContent = 'Use the same email/password across the family, or one account per member — your choice.';
+        el('authSubmit').textContent = 'Create account';
+        el('authToggle').innerHTML = 'Already have an account? <a id="authSwitchLink">Sign in</a>';
+      } else {
+        el('authTitle').textContent = 'Sign in to the family vault';
+        el('authSub').textContent = "Only your family's accounts can view or upload documents here.";
+        el('authSubmit').textContent = 'Sign in';
+        el('authToggle').innerHTML = 'New here? <a id="authSwitchLink">Create a family account</a>';
+      }
+    });
+
+    el('authSubmit').addEventListener('click', async () => {
+      const email = el('authEmail').value.trim();
+      const pass = el('authPass').value;
+      el('authError').style.display = 'none';
+      if(!email || !pass){
+        el('authError').textContent = 'Enter an email and password.';
+        el('authError').style.display = 'block';
+        return;
+      }
+      try{
+        if(mode === 'signup'){
+          await createUserWithEmailAndPassword(auth, email, pass);
+        } else {
+          await signInWithEmailAndPassword(auth, email, pass);
+        }
+      }catch(err){
+        el('authError').textContent = err.message.replace('Firebase: ', '');
+        el('authError').style.display = 'block';
+      }
+    });
+
+    el('signOutBtn').addEventListener('click', () => signOut(auth));
+
+    onAuthStateChanged(auth, (user) => {
+      if(user){
+        el('authWrap').style.display = 'none';
+        el('appWrap').style.display = 'grid';
+        el('userEmail').textContent = user.email;
+        subscribeToDocs();
+      } else {
+        el('authWrap').style.display = 'block';
+        el('appWrap').style.display = 'none';
+        if(unsubscribeDocs) unsubscribeDocs();
+      }
+    });
+
+    // ---- Firestore live doc list ----
+    function subscribeToDocs(){
+      const q = query(collection(db, 'documents'), orderBy('uploadedAt', 'desc'));
+      unsubscribeDocs = onSnapshot(q, (snap) => {
+        docs = snap.docs.map(d => ({id: d.id, ...d.data()}));
+        render();
+      });
+    }
+
+    function computeStats(){
+      const uploaders = new Set(docs.map(d => d.uploadedBy));
+      el('statTotal').textContent = docs.length;
+      el('statPop').textContent = docs.filter(d => d.category === 'Proof of Payment').length;
+      el('statId').textContent = docs.filter(d => d.category === 'ID & Personal').length;
+      el('statUploaders').textContent = uploaders.size;
+    }
+
+    function getFiltered(){
+      const q = el('searchInput').value.trim().toLowerCase();
+      const cat = el('categoryFilter').value;
+      const sort = el('sortFilter').value;
+      let list = docs.filter(d => {
+        const matchesQ = !q || d.name.toLowerCase().includes(q);
+        const matchesCat = cat === 'all' || d.category === cat;
+        return matchesQ && matchesCat;
+      });
+      list.sort((a,b) => {
+        if(sort === 'name-asc') return a.name.localeCompare(b.name);
+        const ad = a.uploadedAt?.toMillis ? a.uploadedAt.toMillis() : 0;
+        const bd = b.uploadedAt?.toMillis ? b.uploadedAt.toMillis() : 0;
+        return sort === 'date-asc' ? ad - bd : bd - ad;
+      });
+      return list;
+    }
+
+    function render(){
+      computeStats();
+      const list = getFiltered();
+      const grid = el('docGrid');
+      if(list.length === 0){
+        grid.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+            <h3>No documents yet</h3>
+            <p>Drag a file above to add the first one to the family vault.</p>
+          </div>`;
+        return;
+      }
+      grid.innerHTML = list.map(d => `
+        <div class="doc-card">
+          <div class="doc-thumb">
+            ${d.isImage
+              ? `<img src="${d.url}" alt="${escapeHtml(d.name)}" loading="lazy">`
+              : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
+          </div>
+          <div class="doc-body">
+            <div class="fname" title="${escapeHtml(d.name)}">${escapeHtml(d.name)}</div>
+            <div class="meta">
+              <span class="cat-pill">${escapeHtml(d.category)}</span>
+              <span>${formatBytes(d.size)}</span>
+              <span>·</span>
+              <span>${formatDate(d.uploadedAt)}</span>
+            </div>
+          </div>
+          <div class="doc-footer">
+            <span class="uploader">${escapeHtml(d.uploadedBy || '')}</span>
+            <div class="row-actions">
+              <a class="icon-btn" href="${d.url}" target="_blank" rel="noopener" aria-label="Download">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+              </a>
+              <button class="icon-btn danger" data-del="${d.id}" data-path="${d.storagePath}" aria-label="Delete">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    el('docGrid').addEventListener('click', async (e) => {
+      const delBtn = e.target.closest('[data-del]');
+      if(!delBtn) return;
+      const id = delBtn.dataset.del;
+      const path = delBtn.dataset.path;
+      const target = docs.find(d => d.id === id);
+      if(!confirm(`Delete "${target?.name}"? This can't be undone.`)) return;
+      try{
+        await deleteDoc(doc(db, 'documents', id));
+        if(path) await deleteObject(ref(storage, path));
+        showToast('Document deleted');
+      }catch(err){
+        showToast('Could not delete: ' + err.message);
+      }
+    });
+
+    ['searchInput','categoryFilter','sortFilter'].forEach(id => {
+      el(id).addEventListener('input', render);
+      el(id).addEventListener('change', render);
+    });
+
+    // ---- Upload handling ----
+    const dropzone = el('dropzone');
+    const fileInput = el('fileInput');
+    el('browseLink').addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    function handleFiles(fileList){
+      const category = el('uploadCategory').value;
+      Array.from(fileList).forEach(file => uploadFile(file, category));
+      fileInput.value = '';
+    }
+
+    function uploadFile(file, category){
+      if(file.size > 10 * 1024 * 1024){
+        showToast(`${file.name} is over 10MB — skipped`);
+        return;
+      }
+      const user = auth.currentUser;
+      const path = `documents/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      const task = uploadBytesResumable(storageRef, file);
+
+      const row = document.createElement('div');
+      row.className = 'upload-row';
+      row.innerHTML = `
+        <span class="name">${escapeHtml(file.name)}</span>
+        <div class="bar"><div class="bar-fill"></div></div>
+        <span class="pct">0%</span>
+      `;
+      el('uploadQueue').appendChild(row);
+      const fill = row.querySelector('.bar-fill');
+      const pct = row.querySelector('.pct');
+
+      task.on('state_changed',
+        (snap) => {
+          const p = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+          fill.style.width = p + '%';
+          pct.textContent = p + '%';
+        },
+        (err) => {
+          showToast(`Upload failed: ${err.message}`);
+          row.remove();
+        },
+        async () => {
+          const url = await getDownloadURL(task.snapshot.ref);
+          await addDoc(collection(db, 'documents'), {
+            name: file.name,
+            category,
+            size: file.size,
+            isImage: file.type.startsWith('image/'),
+            url,
+            storagePath: path,
+            uploadedBy: user.email,
+            uploadedAt: serverTimestamp()
+          });
+          showToast(`${file.name} uploaded`);
+          row.remove();
+        }
+      );
+    }
+  }
+</script>
+</body>
+</html>
