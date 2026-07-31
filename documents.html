@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Application — Documents</title>
+<title>Family Ledger — Documents</title>
+<style>body{visibility:hidden;}</style>
+<script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -11,8 +13,8 @@
   :root{
     --bg:#0a0f1e;
     --bg-elevated:#0d1426;
-    --panel:#161d29;
-    --panel-alt:#161d29;
+    --panel:#121b31;
+    --panel-alt:#16213b;
     --border:#22304f;
     --border-soft:rgba(255,255,255,0.06);
     --text-primary:#eaf0fb;
@@ -191,16 +193,15 @@
   .dropzone .browse{color:var(--accent-hover); font-weight:600; cursor:pointer;}
   .dropzone input[type=file]{display:none;}
 
-  .doc-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px;}
+  .doc-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:16px;}
   .doc-card{
-    height: 175px;
     background:linear-gradient(160deg, var(--panel), var(--panel-alt));
     border:1px solid var(--border-soft); border-radius:var(--radius-md); overflow:hidden;
     display:flex; flex-direction:column; transition:border-color .15s ease, transform .15s ease;
   }
   .doc-card:hover{border-color:rgba(255,255,255,0.15); transform:translateY(-2px);}
   .doc-thumb{
-    background:var(--bg-elevated); display:flex; align-items:center; justify-content:center;
+    height:130px; background:var(--bg-elevated); display:flex; align-items:center; justify-content:center;
     overflow:hidden; border-bottom:1px solid var(--border-soft);
   }
   .doc-thumb img{width:100%; height:100%; object-fit:cover;}
@@ -271,7 +272,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
       </div>
       <div class="brand-text">
-        <strong>Family Application</strong>
+        <strong>Family Ledger</strong>
         <span>Documents</span>
       </div>
     </div>
@@ -290,12 +291,12 @@
           Payments
         </div>
       </a>
-       <a href="expenses.html" class="nav-item">
+      <a href="expenses.html" class="nav-item">
         <div class="left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           Expenses
-        </div>       
-       </a>
+        </div>
+      </a>
       <a href="documents.html" class="nav-item active">
         <div class="left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
@@ -306,12 +307,12 @@
         <div class="left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
           Family Details
-        </div>      
+        </div>
       </a>
     </nav>
 
     <div class="sidebar-footer">
-      <span>Family Application · v0.1</span>
+      <span>Family Ledger · v0.1</span>
       <span>Local files · stored on this device</span>
     </div>
   </aside>
@@ -416,7 +417,10 @@
           <option value="name-asc">Name A–Z</option>
         </select>
       </div>
-      <div class="doc-grid" id="docGrid"></div>     
+
+      <div class="doc-grid" id="docGrid"></div>
+
+      <footer class="note">Payments, Expenses, Documents, and Family Details are all live.</footer>
     </div>
   </main>
 </div>
