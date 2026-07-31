@@ -1,23 +1,7 @@
-/*
-  Family Application — basic access gate
-  ----------------------------------
-  This is a soft deterrent, NOT real security. Anyone who opens this file
-  or the browser's dev tools can see how the check works. Don't rely on
-  this to protect anything you couldn't afford a stranger seeing.
 
-  TO SET YOUR OWN PASSWORD:
-  1. Open any page of the site in Chrome/Edge, press F12 to open dev tools,
-     click the "Console" tab.
-  2. Paste this in (replace "yourpassword" with the password you want),
-     press Enter:
+     /*  crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
+         .then(buf => console.log(Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''))); */
 
-       crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
-         .then(buf => console.log(Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('')));
-
-  3. Copy the long string it prints out.
-  4. Paste it as the value of PASSWORD_HASH below, replacing the placeholder.
-  5. Change USERNAME below to whatever you want the username to be.
-*/
 (function () {
   const AUTH_KEY = 'familyLedgerAuthed';
   const USERNAME = 'family';
