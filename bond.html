@@ -356,7 +356,7 @@
       <div class="topbar">
         <div>
           <h1>Bond Payments</h1>
-          <p>Track your monthly bond installments and any extra payments.</p>
+          <p>Track monthly installments and extra payments.</p>
         </div>
         <div class="actions-row">
           <div class="folder-badge">
@@ -439,7 +439,7 @@
         <div class="empty-state" id="emptyState" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>
           <h3>No bond payments logged yet</h3>
-          <p>Log your first monthly installment or extra payment to start tracking.</p>
+          <p>Log a monthly installment or extra payment.</p>
           <button class="btn btn-primary" id="emptyAddBtn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
             Add Payment
@@ -511,7 +511,7 @@
       <label for="sInstallment">Expected monthly installment (R)</label>
       <input type="number" id="sInstallment" step="0.01" placeholder="0.00">
     </div>
-    <div class="drawer-hint">The estimated balance is calculated as original loan amount minus all extra payments logged. It doesn't account for interest or the capital portion of monthly installments, so treat it as a rough guide rather than an exact figure.</div>
+    <div class="drawer-hint">The est. balance is calculated as original loan amount - extra payments. No interest taken into account.</div>
   </div>
   <div class="drawer-footer">
     <button class="btn btn-ghost" id="detailsCancelBtn">Cancel</button>
