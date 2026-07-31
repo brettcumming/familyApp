@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Application — Family Details</title>
+<title>Family Ledger — Family Details</title>
 <style>body{visibility:hidden;}</style>
 <script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -323,7 +323,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
       </div>
       <div class="brand-text">
-        <strong>Family Application</strong>
+        <strong>Family Ledger</strong>
         <span>Family Details</span>
       </div>
     </div>
@@ -360,16 +360,11 @@
           Family Details
         </div>
       </a>
-      <a href="bond.html" class="nav-item">
-        <div class="left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-          Bond Payments
-        </div>
-      </a>
     </nav>
 
     <div class="sidebar-footer">
-      <span>Family Application · v0.1</span>    
+      <span>Family Ledger · v0.1</span>
+      <span>Local files · stored on this device</span>
     </div>
   </aside>
 
@@ -394,7 +389,7 @@
       <div class="topbar">
         <div>
           <h1>Family Details</h1>
-          <p>Key family info.</p>
+          <p>Profiles, key info, and documents for each family member — all kept in one place.</p>
         </div>
         <div class="actions-row">
           <div class="folder-badge">
@@ -412,7 +407,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
           <span>Add Family Member</span>
         </div>
-      </div>    
+      </div>
+
+      <footer class="note">Payments, Expenses, Documents, and Family Details are all live.</footer>
     </div>
   </main>
 </div>
@@ -444,7 +441,7 @@
     <div class="section-label">Profile</div>
     <div class="field">
       <label for="fName">Full name</label>
-      <input type="text" id="fName" placeholder="">
+      <input type="text" id="fName" placeholder="e.g. Sipho Cumming">
     </div>
     <div class="field-row">
       <div class="field">
@@ -465,8 +462,8 @@
     </div>
     <div class="field-row">
       <div class="field">
-        <label for="fIdNumber">ID numbe</label>
-        <input type="text" id="fIdNumber" placeholder="">
+        <label for="fIdNumber">ID / passport number</label>
+        <input type="text" id="fIdNumber" placeholder="e.g. 9001015800083">
       </div>
       <div class="field">
         <label for="fBloodType">Blood type</label>
@@ -482,20 +479,24 @@
     <div class="field-row">
       <div class="field">
         <label for="fPhone">Phone</label>
-        <input type="text" id="fPhone" placeholder="">
+        <input type="text" id="fPhone" placeholder="e.g. 082 123 4567">
       </div>
       <div class="field">
         <label for="fEmail">Email</label>
-        <input type="email" id="fEmail" placeholder="">
+        <input type="email" id="fEmail" placeholder="e.g. name@example.com">
       </div>
     </div>
     <div class="field">
       <label for="fAddress">Address</label>
-      <input type="text" id="fAddress" placeholder="">
-    </div>  
+      <input type="text" id="fAddress" placeholder="Home or postal address">
+    </div>
+    <div class="field">
+      <label for="fEmergency">Emergency contact</label>
+      <input type="text" id="fEmergency" placeholder="Name and number">
+    </div>
     <div class="field">
       <label for="fNotes">Notes</label>
-      <textarea id="fNotes" placeholder=""></textarea>
+      <textarea id="fNotes" placeholder="Medical aid number, allergies, school, anything worth noting…"></textarea>
     </div>
 
     <div id="docsSection" style="display:none;">
