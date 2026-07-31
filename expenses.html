@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Application — Expenses</title>
+<title>Family Ledger — Expenses</title>
 <style>body{visibility:hidden;}</style>
 <script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,8 +13,8 @@
   :root{
     --bg:#0a0f1e;
     --bg-elevated:#0d1426;
-    --panel:#161d29;
-    --panel-alt:#161d29;
+    --panel:#121b31;
+    --panel-alt:#16213b;
     --border:#22304f;
     --border-soft:rgba(255,255,255,0.06);
     --text-primary:#eaf0fb;
@@ -122,6 +122,27 @@
   .btn-ghost{background:var(--panel); color:var(--text-secondary); border-color:var(--border);}
   .btn-ghost:hover{color:var(--text-primary); border-color:rgba(255,255,255,0.18); background:var(--panel-alt);}
   .actions-row{display:flex; gap:10px; flex-shrink:0;}
+
+  .connect-wrap{
+    max-width:460px; margin:70px auto; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:34px;
+    box-shadow:var(--shadow-soft); text-align:center;
+  }
+  .connect-wrap .icon-circle{
+    width:52px; height:52px; border-radius:14px; background:var(--accent-soft); color:var(--accent-hover);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
+  }
+  .connect-wrap .icon-circle svg{width:24px; height:24px;}
+  .connect-wrap h2{margin:0 0 8px; font-size:19px;}
+  .connect-wrap p{margin:0 0 22px; color:var(--text-secondary); font-size:13.5px; line-height:1.55;}
+  .connect-wrap .btn-primary{margin:0 auto;}
+  .support-warning{
+    background:var(--warning-soft); border:1px solid rgba(240,184,76,0.3); color:var(--warning);
+    padding:12px 16px; border-radius:10px; font-size:12.5px; margin-top:18px; text-align:left; line-height:1.5;
+  }
+  .folder-badge{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted);}
+  .folder-badge svg{width:14px; height:14px; color:var(--text-secondary);}
+  .folder-badge strong{color:var(--text-secondary); font-weight:600;}
 
   .stats{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:14px;}
   .stat-card{
@@ -275,7 +296,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
       </div>
       <div class="brand-text">
-        <strong>Family Application</strong>
+        <strong>Family Ledger</strong>
         <span>Expenses</span>
       </div>
     </div>
@@ -315,18 +336,40 @@
     </nav>
 
     <div class="sidebar-footer">
-      <span>Family Application · v0.1</span>
-      <span>Data stored locally in this browser</span>
+      <span>Family Ledger · v0.1</span>
+      <span>Local files · stored on this device</span>
     </div>
   </aside>
 
   <main class="main">
+
+    <div class="connect-wrap" id="connectWrap">
+      <div class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+      </div>
+      <h2>Connect a folder</h2>
+      <p>Pick a folder on this PC — your expenses will be saved to an <code>expenses.json</code> file there. You can reuse the same folder as your other modules, or choose a new one.</p>
+      <button class="btn btn-primary" id="connectBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+        Choose Folder
+      </button>
+      <div class="support-warning" id="supportWarning" style="display:none;">
+        This feature needs Chrome or Edge on desktop — the browser you're using doesn't support local folder access. Try opening this page in Chrome or Edge.
+      </div>
+    </div>
+
+    <div id="vaultWrap" style="display:none;">
     <div class="topbar">
       <div>
         <h1>Monthly Expenses</h1>
-        <p>Everyday spending.</p>
+        <p>Everyday spending — groceries, transport, takeout, and everything else that doesn't fit a fixed payment.</p>
       </div>
       <div class="actions-row">
+        <div class="folder-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+          <span>Connected: <strong id="folderName">—</strong></span>
+        </div>
+        <button class="btn btn-ghost" id="changeFolderBtn">Change Folder</button>
         <button class="btn btn-ghost" id="exportBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           Export CSV
@@ -413,7 +456,8 @@
       </div>
     </div>
 
-    <footer class="note">Expenses are stored in this browser, alongside your Payments data.</footer>
+    <footer class="note">Expenses are stored in a JSON file in your connected folder.</footer>
+    </div>
   </main>
 </div>
 
@@ -445,7 +489,8 @@
       <label for="fCategory">Category</label>
       <select id="fCategory">
         <option>Groceries</option>
-        <option>Transport</option>     
+        <option>Transport</option>
+        <option>Dining Out</option>
         <option>Utilities</option>
         <option>Entertainment</option>
         <option>Health</option>
@@ -472,19 +517,107 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = 'familyLedger.expenses';
+  const MANIFEST_NAME = 'expenses.json';
+  const IDB_NAME = 'familyLedgerHandles';
+  const IDB_KEY = 'expensesFolder';
   const el = (id) => document.getElementById(id);
 
-  function load(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    }catch(e){ return []; }
-  }
-  function save(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }
-
-  let expenses = load();
+  let dirHandle = null;
+  let expenses = [];
   let editingId = null;
+
+  function idbOpen(){
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbGet(key){
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbSet(key, value){
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  if(!('showDirectoryPicker' in window)){
+    el('supportWarning').style.display = 'block';
+    el('connectBtn').disabled = true;
+  }
+
+  async function readManifest(){
+    try{
+      const fh = await dirHandle.getFileHandle(MANIFEST_NAME);
+      const file = await fh.getFile();
+      return JSON.parse(await file.text());
+    }catch(e){ return null; }
+  }
+  async function writeManifest(){
+    const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
+    const writable = await fh.createWritable();
+    await writable.write(JSON.stringify(expenses, null, 2));
+    await writable.close();
+  }
+
+  async function connectFolder(){
+    try{
+      dirHandle = await window.showDirectoryPicker();
+      await idbSet(IDB_KEY, dirHandle);
+      await afterConnect();
+    }catch(e){ /* cancelled */ }
+  }
+  async function afterConnect(){
+    el('connectWrap').style.display = 'none';
+    el('vaultWrap').style.display = 'block';
+    el('folderName').textContent = dirHandle.name;
+    const existing = await readManifest();
+    expenses = existing === null ? [] : existing;
+    if(existing === null) await writeManifest();
+    render();
+  }
+  async function tryAutoReconnect(){
+    let stored;
+    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
+    if(!stored) return;
+    try{
+      const perm = await stored.queryPermission({mode:'readwrite'});
+      if(perm === 'granted'){
+        dirHandle = stored;
+        await afterConnect();
+      } else {
+        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
+        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue.`;
+        el('connectBtn').textContent = 'Reconnect Folder';
+        el('connectBtn').onclick = async () => {
+          const p = await stored.requestPermission({mode:'readwrite'});
+          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
+        };
+      }
+    }catch(e){ /* fall back to normal connect */ }
+  }
+
+  el('connectBtn').addEventListener('click', connectFolder);
+  el('changeFolderBtn').addEventListener('click', () => {
+    el('vaultWrap').style.display = 'none';
+    el('connectWrap').style.display = 'block';
+    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
+    el('connectWrap').querySelector('p').innerHTML = 'Pick a folder on this PC — your expenses will be saved to an <code>expenses.json</code> file there. You can reuse the same folder as your other modules, or choose a new one.';
+    el('connectBtn').textContent = 'Choose Folder';
+    el('connectBtn').onclick = connectFolder;
+  });
 
   function currency(n){
     return 'R' + Number(n).toLocaleString('en-ZA', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -644,7 +777,7 @@
     showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
-  el('saveBtn').addEventListener('click', () => {
+  el('saveBtn').addEventListener('click', async () => {
     const description = el('fDesc').value.trim();
     const amount = parseFloat(el('fAmount').value);
     if(!description){ el('fDesc').focus(); return; }
@@ -663,17 +796,17 @@
       expenses.push({id: crypto.randomUUID(), ...data});
       showToast('Expense added');
     }
-    save(expenses);
+    await writeManifest();
     closeDrawer();
     render();
   });
 
-  function handleDelete(id){
+  async function handleDelete(id){
     const target = expenses.find(e => e.id === id);
     if(!target) return;
     if(!confirm(`Remove "${target.description}"? This can't be undone.`)) return;
     expenses = expenses.filter(e => e.id !== id);
-    save(expenses);
+    await writeManifest();
     render();
     showToast('Expense removed');
   }
@@ -715,9 +848,8 @@
 
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
 
-  render();
+  tryAutoReconnect();
 })();
 </script>
 </body>
 </html>
-
