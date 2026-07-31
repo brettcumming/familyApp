@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Application — Family Details</title>
+<title>Family Ledger — Family Details</title>
 <style>body{visibility:hidden;}</style>
 <script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -172,8 +172,19 @@
   .avatar{
     width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center;
     background:linear-gradient(155deg, var(--accent), #2a4fc4); color:#fff; font-family:'Sora';
-    font-weight:700; font-size:16px; flex-shrink:0;
+    font-weight:700; font-size:16px; flex-shrink:0; overflow:hidden;
   }
+  .avatar img{width:100%; height:100%; object-fit:cover;}
+  .avatar-edit{display:flex; align-items:center; gap:16px; margin-bottom:4px;}
+  .avatar-edit .avatar-preview{
+    width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(155deg, var(--accent), #2a4fc4); color:#fff; font-family:'Sora';
+    font-weight:700; font-size:20px; flex-shrink:0; overflow:hidden; border:1px solid var(--border-soft);
+  }
+  .avatar-edit .avatar-preview img{width:100%; height:100%; object-fit:cover;}
+  .avatar-edit-actions{display:flex; flex-direction:column; gap:6px;}
+  .avatar-edit-actions .btn{padding:7px 14px; font-size:12.5px;}
+  .avatar-edit-actions input[type=file]{display:none;}
   .member-card h3{font-size:15px; margin:0; font-weight:700;}
   .member-card .rel{font-size:12px; color:var(--text-muted); margin-top:2px;}
   .member-meta{
@@ -312,7 +323,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
       </div>
       <div class="brand-text">
-        <strong>Family Application</strong>
+        <strong>Family Ledger</strong>
         <span>Family Details</span>
       </div>
     </div>
@@ -349,16 +360,11 @@
           Family Details
         </div>
       </a>
-      <a href="bond.html" class="nav-item">
-        <div class="left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-          Bond Payments
-        </div>
-      </a>
     </nav>
 
     <div class="sidebar-footer">
-      <span>Family Application · v0.1</span>     
+      <span>Family Ledger · v0.1</span>
+      <span>Local files · stored on this device</span>
     </div>
   </aside>
 
@@ -383,7 +389,7 @@
       <div class="topbar">
         <div>
           <h1>Family Details</h1>
-          <p>Key family info.</p>
+          <p>Profiles, key info, and documents for each family member — all kept in one place.</p>
         </div>
         <div class="actions-row">
           <div class="folder-badge">
@@ -420,10 +426,22 @@
   <div class="drawer-body">
     <input type="hidden" id="editId">
 
+    <div class="avatar-edit">
+      <div class="avatar-preview" id="avatarPreview">?</div>
+      <div class="avatar-edit-actions">
+        <label class="btn btn-ghost" for="avatarInput" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          Upload Photo
+        </label>
+        <input type="file" id="avatarInput" accept="image/*">
+        <button class="btn btn-ghost" id="removeAvatarBtn" style="display:none;">Remove Photo</button>
+      </div>
+    </div>
+
     <div class="section-label">Profile</div>
     <div class="field">
       <label for="fName">Full name</label>
-      <input type="text" id="fName" placeholder="">
+      <input type="text" id="fName" placeholder="e.g. Sipho Cumming">
     </div>
     <div class="field-row">
       <div class="field">
@@ -444,8 +462,8 @@
     </div>
     <div class="field-row">
       <div class="field">
-        <label for="fIdNumber">ID number</label>
-        <input type="text" id="fIdNumber" placeholder="">
+        <label for="fIdNumber">ID / passport number</label>
+        <input type="text" id="fIdNumber" placeholder="e.g. 9001015800083">
       </div>
       <div class="field">
         <label for="fBloodType">Blood type</label>
@@ -461,17 +479,21 @@
     <div class="field-row">
       <div class="field">
         <label for="fPhone">Phone</label>
-        <input type="text" id="fPhone" placeholder="">
+        <input type="text" id="fPhone" placeholder="e.g. 082 123 4567">
       </div>
       <div class="field">
         <label for="fEmail">Email</label>
-        <input type="email" id="fEmail" placeholder="">
+        <input type="email" id="fEmail" placeholder="e.g. name@example.com">
       </div>
     </div>
     <div class="field">
       <label for="fAddress">Address</label>
-      <input type="text" id="fAddress" placeholder="">
-    </div>   
+      <input type="text" id="fAddress" placeholder="Home or postal address">
+    </div>
+    <div class="field">
+      <label for="fEmergency">Emergency contact</label>
+      <input type="text" id="fEmergency" placeholder="Name and number">
+    </div>
     <div class="field">
       <label for="fNotes">Notes</label>
       <textarea id="fNotes" placeholder="Medical aid number, allergies, school, anything worth noting…"></textarea>
@@ -487,7 +509,7 @@
       </div>
       <div class="doc-list" id="memberDocList"></div>
     </div>
-    <div class="save-hint" id="newMemberHint">Save this member first to attach documents.</div>
+    <div class="save-hint" id="newMemberHint">Save this member first to add a photo or attach documents.</div>
   </div>
   <div class="drawer-footer">
     <button class="btn btn-ghost" id="deleteMemberBtn" style="display:none; flex:0 0 auto;">
@@ -516,6 +538,7 @@
   let editingId = null;
   let currentMemberDir = null; // FileSystemDirectoryHandle for the member being edited
   let thumbUrls = {};
+  let avatarThumbs = {};
 
   function idbOpen(){
     return new Promise((resolve, reject) => {
@@ -599,7 +622,22 @@
     el('vaultWrap').style.display = 'block';
     el('folderName').textContent = dirHandle.name;
     members = await readManifest();
+    await buildAvatarThumbs();
     renderGrid();
+  }
+  async function buildAvatarThumbs(){
+    Object.values(avatarThumbs).forEach(u => URL.revokeObjectURL(u));
+    avatarThumbs = {};
+    for(const m of members){
+      if(m.avatarName){
+        try{
+          const dir = await getMemberDir(m, true);
+          const fh = await dir.getFileHandle(m.avatarName);
+          const file = await fh.getFile();
+          avatarThumbs[m.id] = URL.createObjectURL(file);
+        }catch(e){ /* missing */ }
+      }
+    }
   }
   async function tryAutoReconnect(){
     let stored;
@@ -649,7 +687,7 @@
         const card = document.createElement('div');
         card.className = 'member-card';
         card.innerHTML = `
-          <div class="avatar">${escapeHtml(initials(m.name || '?'))}</div>
+          <div class="avatar">${avatarThumbs[m.id] ? `<img src="${avatarThumbs[m.id]}" alt="">` : escapeHtml(initials(m.name || '?'))}</div>
           <div>
             <h3>${escapeHtml(m.name || 'Unnamed')}</h3>
             <div class="rel">${escapeHtml(m.relationship || '—')}</div>
@@ -688,6 +726,9 @@
 
     el('deleteMemberBtn').style.display = member ? 'flex' : 'none';
 
+    renderAvatarPreview(member);
+    el('avatarInput').disabled = false;
+
     if(member){
       el('docsSection').style.display = 'block';
       el('newMemberHint').style.display = 'none';
@@ -702,6 +743,17 @@
     el('drawer').classList.add('show');
     el('overlay').classList.add('show');
     setTimeout(() => el('fName').focus(), 200);
+  }
+  function renderAvatarPreview(member){
+    const preview = el('avatarPreview');
+    const removeBtn = el('removeAvatarBtn');
+    if(member && member.avatarName && avatarThumbs[member.id]){
+      preview.innerHTML = `<img src="${avatarThumbs[member.id]}" alt="">`;
+      removeBtn.style.display = 'inline-flex';
+    } else {
+      preview.textContent = initials((member && member.name) || el('fName').value || '?');
+      removeBtn.style.display = 'none';
+    }
   }
   function closeDrawer(){
     el('drawer').classList.remove('show');
@@ -819,6 +871,57 @@
     renderGrid();
   }
 
+  // ---- avatar upload / remove ----
+  el('avatarInput').addEventListener('change', async () => {
+    const file = el('avatarInput').files[0];
+    if(!file) return;
+    const member = members.find(m => m.id === editingId);
+    if(!member || !currentMemberDir){
+      showToast('Save this member first to add a photo');
+      el('avatarInput').value = '';
+      return;
+    }
+    if(!file.type.startsWith('image/')){
+      showToast('Please choose an image file');
+      el('avatarInput').value = '';
+      return;
+    }
+    try{
+      // remove the previous avatar file, if any, before saving the new one
+      if(member.avatarName){
+        try{ await currentMemberDir.removeEntry(member.avatarName); }catch(e){ /* already gone */ }
+      }
+      const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+      const storedName = `avatar_${Date.now()}.${ext}`;
+      const fh = await currentMemberDir.getFileHandle(storedName, {create:true});
+      const writable = await fh.createWritable();
+      await writable.write(file);
+      await writable.close();
+      member.avatarName = storedName;
+      await writeManifest();
+      await buildAvatarThumbs();
+      renderAvatarPreview(member);
+      renderGrid();
+      showToast('Photo updated');
+    }catch(err){
+      showToast('Could not save photo');
+    }
+    el('avatarInput').value = '';
+  });
+
+  el('removeAvatarBtn').addEventListener('click', async () => {
+    const member = members.find(m => m.id === editingId);
+    if(!member || !currentMemberDir || !member.avatarName) return;
+    if(!confirm('Remove this photo?')) return;
+    try{ await currentMemberDir.removeEntry(member.avatarName); }catch(e){ /* already gone */ }
+    delete member.avatarName;
+    await writeManifest();
+    await buildAvatarThumbs();
+    renderAvatarPreview(member);
+    renderGrid();
+    showToast('Photo removed');
+  });
+
   // ---- save / delete member ----
   el('saveBtn').addEventListener('click', async () => {
     const name = el('fName').value.trim();
@@ -859,11 +962,12 @@
   el('deleteMemberBtn').addEventListener('click', async () => {
     const member = members.find(m => m.id === editingId);
     if(!member) return;
-    if(!confirm(`Remove "${member.name}" and all their attached documents? This can't be undone.`)) return;
+    if(!confirm(`Remove "${member.name}" and all their attached documents and photo? This can't be undone.`)) return;
     try{
       const membersRoot = await dirHandle.getDirectoryHandle(MEMBERS_DIR, {create:true});
       await membersRoot.removeEntry(member.folderName, {recursive:true});
     }catch(err){ /* folder may not exist */ }
+    if(avatarThumbs[member.id]){ URL.revokeObjectURL(avatarThumbs[member.id]); delete avatarThumbs[member.id]; }
     members = members.filter(m => m.id !== editingId);
     await writeManifest();
     renderGrid();
