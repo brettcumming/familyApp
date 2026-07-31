@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Application — Home</title>
+<title>Family Ledger — Home</title>
 <style>body{visibility:hidden;}</style>
 <script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,8 +13,8 @@
   :root{
     --bg:#0a0f1e;
     --bg-elevated:#0d1426;
-    --panel:#161d29;
-    --panel-alt:#161d29;
+    --panel:#121b31;
+    --panel-alt:#16213b;
     --border:#22304f;
     --border-soft:rgba(255,255,255,0.06);
     --text-primary:#eaf0fb;
@@ -29,13 +29,11 @@
     --warning-soft:rgba(240,184,76,0.12);
     --danger:#f0664c;
     --danger-soft:rgba(240,102,76,0.13);
-    --radius-sm:8px;
     --radius-md:12px;
     --radius-lg:18px;
     --shadow-soft: 0 8px 24px rgba(0,0,0,0.35);
     --shadow-lift: 0 16px 40px rgba(0,0,0,0.45);
   }
-
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
@@ -47,7 +45,7 @@
     color:var(--text-primary);
     font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing:antialiased;
-    min-height:100vh;   
+    min-height:100vh;
     display:flex;
     flex-direction:column;
   }
@@ -58,7 +56,7 @@
   a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 
   .wrap{
-    max-width:1280px; margin:0 auto; padding:64px 32px 40px; flex:1;
+    max-width:1040px; margin:0 auto; padding:64px 32px 40px; flex:1;
     display:flex; flex-direction:column; align-items:center; width:100%;
   }
 
@@ -80,7 +78,7 @@
   }
 
   .grid{
-    display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; width:100%;
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; width:100%;
   }
   .card{
     position:relative; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
@@ -97,17 +95,16 @@
   }
   .card-icon svg{width:21px; height:21px;}
   .card.payments .card-icon{background:var(--accent-soft); color:var(--accent-hover);}
-  .card.documents .card-icon{background:var(--accent-soft); color:var(--accent-hover);}
+  .card.documents .card-icon{background:var(--success-soft); color:var(--success);}
   .card.expenses .card-icon{background:var(--warning-soft); color:var(--warning);}
   .card.family .card-icon{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
-  .card.bond .card-icon{background:var(--success-soft); color:var(--success);}
 
   .soon-tag{
     font-size:10px; font-weight:700; letter-spacing:0.5px; background:rgba(255,255,255,0.06);
     color:var(--text-muted); padding:4px 9px; border-radius:20px; text-transform:uppercase;
     align-self:flex-start; margin-top:2px;
   }
-  .card h2{font-size:19px; font-weight:700; margin:0;}
+  .card h2{font-size:17px; font-weight:700; margin:0;}
   .card p{margin:0; font-size:13.5px; color:var(--text-secondary); line-height:1.5;}
   .card-stat{
     font-size:12.5px; color:var(--text-muted); display:flex; align-items:center; gap:6px;
@@ -136,8 +133,8 @@
     <div class="brand-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
     </div>
-    <h1>Family Application</h1>
-    <p>The family's shared library for payments, documents, and everything else worth tracking.</p>
+    <h1>Family Ledger</h1>
+    <p>Your family's shared home for payments, documents, and everything worth keeping track of.</p>
   </div>
 
   <div class="ledger-stitch"></div>
@@ -150,103 +147,62 @@
         </div>
       </div>
       <h2>Payments</h2>
-      <p>Track payments.</p>
-      <div class="card-stat" id="paymentsStat">Loading…</div>
+      <p>Track beneficiary payments — who's paid, what's pending, and what's overdue.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
       <span class="card-cta">
         Open Payments
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
       </span>
     </a>
-    
-    <a href="documents.html" class="card live payments">
+
+    <a href="documents.html" class="card live documents">
       <div class="card-top">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
         </div>
       </div>
       <h2>Documents</h2>
-      <p>Documents.</p>
-      <div class="card-stat" id="documentsStat">Loading…</div>
+      <p>Store proof of payments, IDs, insurance papers, and anything worth keeping safe.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
       <span class="card-cta">
         Open Documents
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
       </span>
     </a>
 
-    <a href="expenses.html" class="card live payments">
+    <a href="expenses.html" class="card live expenses">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="5" width="20" height="14" rx="2.5"/>
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M6.5 9h.01"/>
-            <path d="M17.5 15h.01"/>
-          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
       </div>
       <h2>Expenses</h2>
-      <p>Track expenses.</p>
-      <div class="card-stat" id="expensesStat">Loading…</div>
+      <p>Everyday spending — groceries, transport, takeout, and everything else.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
       <span class="card-cta">
-        Open expenses
+        Open Expenses
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
       </span>
-    </a>   
-    
-    <a href="family-details.html" class="card live payments">
+    </a>
+
+    <a href="family-details.html" class="card live family">
       <div class="card-top">
         <div class="card-icon">
-         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
       </div>
       <h2>Family Details</h2>
-      <p>Family details.</p>
-      <div class="card-stat" id="family-detailsStat">Loading…</div>
+      <p>Profiles, key info, and documents for each family member.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
       <span class="card-cta">
-        Open family details
+        Open Family Details
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
       </span>
     </a>
-    
-    <a href="bond.html" class="card live payments">
-      <div class="card-top">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 10.5 12 3l9 7.5"/>
-            <path d="M5 9.5V21h14V9.5"/>
-            <path d="M9 21v-6h6v6"/>
-          </svg>
-        </div>
-      </div>
-      <h2>Bond</h2>
-      <p>Track bond payments.</p>
-      <div class="card-stat" id="bondStat">Loading…</div>
-      <span class="card-cta">
-        Open bond Payments
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-      </span>
-    </a>
-    
   </div>
 </div>
-<footer class="note">Family Application · v0.1 ·</footer>
-<script>
-  (function(){
-    try{
-      const raw = localStorage.getItem('familyLedger.payments');
-      const list = raw ? JSON.parse(raw) : [];
-      const total = list.reduce((a,p) => a + Number(p.amount || 0), 0);
-      const currency = 'R' + total.toLocaleString('en-ZA', {minimumFractionDigits:2, maximumFractionDigits:2});
-      const el = document.getElementById('paymentsStat');
-      if(list.length === 0){
-        el.textContent = 'No payments tracked yet';
-      } else {
-        el.innerHTML = `<strong>${list.length}</strong> payment${list.length===1?'':'s'} · <strong>${currency}</strong> tracked`;
-      }
-    }catch(e){
-      document.getElementById('paymentsStat').textContent = 'Open to view your payments';
-    }
-  })();
-</script>
+
+<footer class="note">Family Ledger · v0.1 · Payments, Expenses, Documents, and Family Details are all live</footer>
+
 </body>
 </html>
