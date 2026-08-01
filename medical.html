@@ -185,18 +185,31 @@
     display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--border-soft);
     border-radius:20px; padding:6px 12px 6px 6px; font-size:12.5px;
   }
+  .member-chip.is-main{border-color:rgba(76,124,240,0.4);}
   .member-chip .chip-avatar{
     width:24px; height:24px; border-radius:50%; background:linear-gradient(155deg, var(--accent), #2a4fc4);
     color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; flex-shrink:0;
   }
   .member-chip .chip-name{font-weight:600; color:var(--text-primary);}
   .member-chip .chip-dob{color:var(--text-muted);}
-
-  .member-row{
-    display:flex; gap:8px; align-items:center; margin-bottom:8px;
+  .member-chip .chip-id{color:var(--text-muted); font-family:'JetBrains Mono'; font-size:11.5px;}
+  .main-badge{
+    font-size:9.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase;
+    background:var(--accent-soft); color:var(--accent-hover); padding:2px 7px; border-radius:10px;
   }
-  .member-row input{flex:1;}
-  .member-row .icon-btn{flex-shrink:0;}
+
+  .member-edit-card{
+    border:1px solid var(--border-soft); border-radius:10px; padding:12px; margin-bottom:10px; background:var(--panel);
+  }
+  .member-edit-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .member-edit-row:last-child{margin-bottom:0;}
+  .member-edit-row input{flex:1;}
+  .member-edit-row .icon-btn{flex-shrink:0;}
+  .main-toggle{
+    display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary);
+    flex-shrink:0; white-space:nowrap; cursor:pointer;
+  }
+  .main-toggle input{width:auto; flex:none; cursor:pointer;}
   .add-member-row-btn{
     display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--accent-hover);
     background:none; border:none; cursor:pointer; padding:6px 0; font-weight:600;
@@ -393,6 +406,18 @@
           Expenses
         </div>
       </a>
+      <a href="bond.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>
+          Bond
+        </div>
+      </a>
+      <a href="medical.html" class="nav-item active">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A4.5 4.5 0 0 0 17.5 4c-1.7 0-3 .7-4.5 2.5C11.5 4.7 10.2 4 8.5 4A4.5 4.5 0 0 0 4 8.5C4 13 12 21 12 21s2.5-2.4 4.5-4.5"/><path d="M9 11h3m0 0h3m-3 0V8m0 3v3"/></svg>
+          Medical
+        </div>
+      </a>
       <a href="documents.html" class="nav-item">
         <div class="left">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
@@ -405,18 +430,6 @@
           Family Details
         </div>
       </a>
-      <a href="bond.html" class="nav-item">
-        <div class="left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>
-          Bond
-        </div>
-      </a>
-      <a href="medical.html" class="nav-item active">
-        <div class="left">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A4.5 4.5 0 0 0 17.5 4c-1.7 0-3 .7-4.5 2.5C11.5 4.7 10.2 4 8.5 4A4.5 4.5 0 0 0 4 8.5C4 13 12 21 12 21s2.5-2.4 4.5-4.5"/><path d="M9 11h3m0 0h3m-3 0V8m0 3v3"/></svg>
-          Medical
-        </div>
-      </a>      
     </nav>
 
     <div class="sidebar-footer">
@@ -626,16 +639,16 @@
   <div class="drawer-body">
     <div class="field">
       <label for="maScheme">Medical aid scheme</label>
-      <input type="text" id="maScheme" placeholder="e.g. Discovery Health">
+      <input type="text" id="maScheme" placeholder="">
     </div>
     <div class="field-row">
       <div class="field">
         <label for="maCard">Card number</label>
-        <input type="text" id="maCard" placeholder="e.g. 123456789">
+        <input type="text" id="maCard" placeholder="">
       </div>
       <div class="field">
         <label for="maContact">Contact number</label>
-        <input type="text" id="maContact" placeholder="e.g. 0860 99 88 77">
+        <input type="text" id="maContact" placeholder="">
       </div>
     </div>
 
@@ -1187,10 +1200,12 @@
     }
     const membersHtml = (s.members||[]).length
       ? `<div class="medaid-members">${s.members.map(m => `
-          <div class="member-chip">
+          <div class="member-chip ${m.isMain ? 'is-main' : ''}">
             <div class="chip-avatar">${escapeHtml(initials(m.name))}</div>
             <span class="chip-name">${escapeHtml(m.name || 'Unnamed')}</span>
+            ${m.isMain ? '<span class="main-badge">Main</span>' : ''}
             <span class="chip-dob">${escapeHtml(formatDob(m.dob))}</span>
+            ${m.idNumber ? `<span class="chip-id">${escapeHtml(m.idNumber)}</span>` : ''}
           </div>
         `).join('')}</div>`
       : '<div class="medaid-empty">No members added yet.</div>';
@@ -1221,19 +1236,32 @@
       return;
     }
     wrap.innerHTML = editingMembers.map((m, i) => `
-      <div class="member-row" data-idx="${i}">
-        <input type="text" class="member-name-input" placeholder="Name" value="${escapeHtml(m.name)}">
-        <input type="date" class="member-dob-input" value="${escapeHtml(m.dob||'')}">
-        <button type="button" class="icon-btn danger" data-remove-member="${i}" aria-label="Remove member">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
+      <div class="member-edit-card" data-idx="${i}">
+        <div class="member-edit-row">
+          <input type="text" class="member-name-input" placeholder="Full name" value="${escapeHtml(m.name)}">
+          <input type="text" class="member-id-input" placeholder="ID number" value="${escapeHtml(m.idNumber||'')}">
+        </div>
+        <div class="member-edit-row">
+          <input type="date" class="member-dob-input" value="${escapeHtml(m.dob||'')}">
+          <label class="main-toggle">
+            <input type="radio" name="mainMemberRadio" class="member-main-input" ${m.isMain ? 'checked' : ''}>
+            Main member
+          </label>
+          <button type="button" class="icon-btn danger" data-remove-member="${i}" aria-label="Remove member">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
       </div>
     `).join('');
 
-    wrap.querySelectorAll('.member-row').forEach(row => {
-      const idx = Number(row.dataset.idx);
-      row.querySelector('.member-name-input').addEventListener('input', (e) => { editingMembers[idx].name = e.target.value; });
-      row.querySelector('.member-dob-input').addEventListener('input', (e) => { editingMembers[idx].dob = e.target.value; });
+    wrap.querySelectorAll('.member-edit-card').forEach(card => {
+      const idx = Number(card.dataset.idx);
+      card.querySelector('.member-name-input').addEventListener('input', (e) => { editingMembers[idx].name = e.target.value; });
+      card.querySelector('.member-id-input').addEventListener('input', (e) => { editingMembers[idx].idNumber = e.target.value; });
+      card.querySelector('.member-dob-input').addEventListener('input', (e) => { editingMembers[idx].dob = e.target.value; });
+      card.querySelector('.member-main-input').addEventListener('change', () => {
+        editingMembers.forEach((m, i) => { m.isMain = (i === idx); });
+      });
     });
     wrap.querySelectorAll('[data-remove-member]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1244,7 +1272,7 @@
   }
 
   el('addMemberRowBtn').addEventListener('click', () => {
-    editingMembers.push({ name: '', dob: '' });
+    editingMembers.push({ name: '', dob: '', idNumber: '', isMain: editingMembers.length === 0 });
     renderMemberRows();
   });
 
@@ -1271,7 +1299,7 @@
       cardNumber: el('maCard').value.trim(),
       contactNumber: el('maContact').value.trim(),
       members: editingMembers
-        .map(m => ({ name: m.name.trim(), dob: m.dob || '' }))
+        .map(m => ({ name: m.name.trim(), dob: m.dob || '', idNumber: (m.idNumber||'').trim(), isMain: !!m.isMain }))
         .filter(m => m.name)
     };
     await writeManifest();
