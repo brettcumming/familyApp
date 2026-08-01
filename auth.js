@@ -72,7 +72,7 @@
             <path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/>
           </svg>
         </div>
-        <h2>Family Application</h2>
+        <h2>Household Manager</h2>
         <p>Enter your username and password to continue.</p>
         <div class="err" id="lockErr">Incorrect username or password.</div>
         <label for="lockUser">Username</label>
