@@ -190,8 +190,7 @@
     width:24px; height:24px; border-radius:50%; background:linear-gradient(155deg, var(--accent), #2a4fc4);
     color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; flex-shrink:0;
   }
-  .member-chip .chip-name{font-weight:600; color:var(--text-primary);}
-  .member-chip .chip-dob{color:var(--text-muted);}
+  .member-chip .chip-name{font-weight:600; color:var(--text-primary);} 
   .member-chip .chip-id{color:var(--text-muted); font-family:'JetBrains Mono'; font-size:11.5px;}
   .main-badge{
     font-size:9.5px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase;
@@ -749,11 +748,7 @@
   function initials(name){
     return (name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('') || '?';
   }
-  function formatDob(d){
-    if(!d) return 'DOB not set';
-    return new Date(d + 'T00:00:00').toLocaleDateString('en-ZA', {day:'2-digit', month:'short', year:'numeric'});
-  }
-
+ 
   if(!('showDirectoryPicker' in window)){
     el('supportWarning').style.display = 'block';
     el('connectBtn').disabled = true;
@@ -1203,8 +1198,7 @@
           <div class="member-chip ${m.isMain ? 'is-main' : ''}">
             <div class="chip-avatar">${escapeHtml(initials(m.name))}</div>
             <span class="chip-name">${escapeHtml(m.name || 'Unnamed')}</span>
-            ${m.isMain ? '<span class="main-badge">Main</span>' : ''}
-            <span class="chip-dob">${escapeHtml(formatDob(m.dob))}</span>
+            ${m.isMain ? '<span class="main-badge">Main</span>' : ''}    
             ${m.idNumber ? `<span class="chip-id">${escapeHtml(m.idNumber)}</span>` : ''}
           </div>
         `).join('')}</div>`
@@ -1241,8 +1235,7 @@
           <input type="text" class="member-name-input" placeholder="Full name" value="${escapeHtml(m.name)}">
           <input type="text" class="member-id-input" placeholder="ID number" value="${escapeHtml(m.idNumber||'')}">
         </div>
-        <div class="member-edit-row">
-          <input type="date" class="member-dob-input" value="${escapeHtml(m.dob||'')}">
+        <div class="member-edit-row">         
           <label class="main-toggle">
             <input type="radio" name="mainMemberRadio" class="member-main-input" ${m.isMain ? 'checked' : ''}>
             Main member
@@ -1257,8 +1250,7 @@
     wrap.querySelectorAll('.member-edit-card').forEach(card => {
       const idx = Number(card.dataset.idx);
       card.querySelector('.member-name-input').addEventListener('input', (e) => { editingMembers[idx].name = e.target.value; });
-      card.querySelector('.member-id-input').addEventListener('input', (e) => { editingMembers[idx].idNumber = e.target.value; });
-      card.querySelector('.member-dob-input').addEventListener('input', (e) => { editingMembers[idx].dob = e.target.value; });
+      card.querySelector('.member-id-input').addEventListener('input', (e) => { editingMembers[idx].idNumber = e.target.value; });     
       card.querySelector('.member-main-input').addEventListener('change', () => {
         editingMembers.forEach((m, i) => { m.isMain = (i === idx); });
       });
@@ -1272,7 +1264,7 @@
   }
 
   el('addMemberRowBtn').addEventListener('click', () => {
-    editingMembers.push({ name: '', dob: '', idNumber: '', isMain: editingMembers.length === 0 });
+    editingMembers.push({ name: '', idNumber: '', isMain: editingMembers.length === 0 });
     renderMemberRows();
   });
 
@@ -1299,7 +1291,7 @@
       cardNumber: el('maCard').value.trim(),
       contactNumber: el('maContact').value.trim(),
       members: editingMembers
-        .map(m => ({ name: m.name.trim(), dob: m.dob || '', idNumber: (m.idNumber||'').trim(), isMain: !!m.isMain }))
+        .map(m => ({ name: m.name.trim(), idNumber: (m.idNumber||'').trim(), isMain: !!m.isMain }))
         .filter(m => m.name)
     };
     await writeManifest();
