@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Household Manager — Home</title>
+<title>Family Ledger — Home</title>
 <style>body{visibility:hidden;}</style>
 <script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,7 +56,7 @@
   a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 
   .wrap{
-    max-width:1380px; margin:0 auto; padding:64px 32px 40px; flex:1;
+    max-width:1040px; margin:0 auto; padding:64px 32px 40px; flex:1;
     display:flex; flex-direction:column; align-items:center; width:100%;
   }
 
@@ -71,20 +71,19 @@
   .hero h1{font-size:32px; font-weight:800; margin:0 0 10px; letter-spacing:-0.4px;}
   .hero p{margin:0; color:var(--text-secondary); font-size:15px; max-width:46ch; margin:0 auto;}
 
-  .Application-stitch{
+  .ledger-stitch{
     height:1px; width:100%; max-width:520px; margin:36px 0 40px;
     background-image:linear-gradient(90deg, var(--border) 50%, transparent 50%);
     background-size:10px 1px; background-repeat:repeat-x; opacity:0.7;
   }
 
   .grid{
-    display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; width:100%;
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; width:100%;
   }
-  .card{    
-    height:185px;
+  .card{
     position:relative; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
-    border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:22px;
-    display:flex; flex-direction:column; gap:11px; transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:26px;
+    display:flex; flex-direction:column; gap:14px; transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
   .card.live{cursor:pointer;}
   .card.live:hover{transform:translateY(-3px); border-color:rgba(255,255,255,0.16); box-shadow:var(--shadow-lift);}
@@ -93,22 +92,20 @@
   .card-icon{
     width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
     flex-shrink:0;
-  }  
+  }
   .card-icon svg{width:21px; height:21px;}
   .card.payments .card-icon{background:var(--accent-soft); color:var(--accent-hover);}
   .card.documents .card-icon{background:var(--success-soft); color:var(--success);}
   .card.expenses .card-icon{background:var(--warning-soft); color:var(--warning);}
+  .card.bond .card-icon{background:var(--danger-soft); color:var(--danger);}
   .card.family .card-icon{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
-  .card.bond .card-icon{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
-  .card.medical .card-icon{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
-  .card.pets .card-icon{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
 
   .soon-tag{
     font-size:10px; font-weight:700; letter-spacing:0.5px; background:rgba(255,255,255,0.06);
     color:var(--text-muted); padding:4px 9px; border-radius:20px; text-transform:uppercase;
     align-self:flex-start; margin-top:2px;
   }
-  .card h2{font-size:19px; font-weight:700; margin:0;}
+  .card h2{font-size:17px; font-weight:700; margin:0;}
   .card p{margin:0; font-size:13.5px; color:var(--text-secondary); line-height:1.5;}
   .card-stat{
     font-size:12.5px; color:var(--text-muted); display:flex; align-items:center; gap:6px;
@@ -124,6 +121,59 @@
 
   footer.note{color:var(--text-muted); font-size:12px; text-align:center; padding:20px 0 32px;}
 
+  .reminders-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:26px;
+    width:100%; margin-bottom:24px;
+  }
+  .reminders-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:12px; flex-wrap:wrap;}
+  .reminders-header h2{font-size:17px; margin:0; font-weight:700; display:flex; align-items:center; gap:9px;}
+  .reminders-header h2 svg{width:19px; height:19px; color:var(--accent-hover);}
+  .reminders-header p{margin:2px 0 0; font-size:13px; color:var(--text-secondary);}
+  .reminders-actions{display:flex; gap:8px; align-items:center;}
+  .btn-sm{
+    padding:7px 13px; font-size:12.5px; border-radius:9px; font-weight:600; cursor:pointer;
+    background:var(--panel); color:var(--text-secondary); border:1px solid var(--border);
+    display:inline-flex; align-items:center; gap:6px; transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .btn-sm:hover{color:var(--text-primary); border-color:rgba(255,255,255,0.18); background:var(--panel-alt);}
+  .btn-sm svg{width:13px; height:13px;}
+
+  .reminders-connect{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:16px;
+    background:var(--panel); border:1px solid var(--border-soft); border-radius:10px; padding:16px 18px;
+    flex-wrap:wrap;
+  }
+  .reminders-connect p{margin:0; font-size:13px; color:var(--text-secondary); max-width:44ch;}
+  .reminders-connect .support-note{
+    font-size:11.5px; color:var(--warning); margin-top:6px; display:block;
+  }
+
+  .reminders-list{display:flex; flex-direction:column; gap:8px; margin-top:16px;}
+  .reminder-row{
+    display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--panel);
+    border:1px solid var(--border-soft); border-radius:10px; font-size:13px;
+  }
+  .reminder-row .r-icon{
+    width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; background:var(--accent-soft); color:var(--accent-hover);
+  }
+  .reminder-row .r-icon svg{width:15px; height:15px;}
+  .reminder-row.overdue .r-icon{background:var(--danger-soft); color:var(--danger);}
+  .reminder-row.soon .r-icon{background:var(--warning-soft); color:var(--warning);}
+  .reminder-row .r-body{flex:1; min-width:0;}
+  .reminder-row .r-title{font-weight:600; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .reminder-row .r-sub{font-size:11.5px; color:var(--text-muted); margin-top:1px;}
+  .reminder-row .r-when{
+    font-size:12px; font-weight:600; flex-shrink:0; color:var(--text-secondary); white-space:nowrap;
+  }
+  .reminder-row.overdue .r-when{color:var(--danger);}
+  .reminder-row.soon .r-when{color:var(--warning);}
+  .reminders-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;}
+  .reminders-partial-note{
+    font-size:11.5px; color:var(--text-muted); margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);
+  }
+
   @media (max-width:640px){
     .grid{grid-template-columns:1fr;}
     .wrap{padding:44px 20px 24px;}
@@ -137,11 +187,44 @@
     <div class="brand-mark">
       <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
     </div>
-    <h1>Household Manager</h1>
-    <p>The family's shared home for payments, documents, and everything worth keeping track of.</p>
+    <h1>Family Ledger</h1>
+    <p>Your family's shared home for payments, documents, and everything worth keeping track of.</p>
   </div>
 
   <div class="ledger-stitch"></div>
+
+  <div class="reminders-card">
+    <div class="reminders-header">
+      <div>
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 3v4M17 3v4"/></svg>
+          Upcoming
+        </h2>
+        <p>Payments due, bond installments, pet vaccines, and birthdays — pulled from across your connected modules.</p>
+      </div>
+      <div class="reminders-actions" id="remindersActions" style="display:none;">
+        <button class="btn-sm" id="remindersRefreshBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>
+          Refresh
+        </button>
+        <button class="btn-sm" id="remindersChangeFolderBtn">Change Folder</button>
+      </div>
+    </div>
+
+    <div class="reminders-connect" id="remindersConnect">
+      <div>
+        <p>Connect the folder where your modules save their data to see what's coming up.</p>
+        <span class="support-note" id="remindersSupportNote" style="display:none;">Needs Chrome or Edge on desktop.</span>
+      </div>
+      <button class="btn-sm" id="remindersConnectBtn" style="background:linear-gradient(155deg, var(--accent-hover), var(--accent)); color:#08101f; border-color:transparent;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+        Connect Folder
+      </button>
+    </div>
+
+    <div class="reminders-list" id="remindersList" style="display:none;"></div>
+    <div class="reminders-partial-note" id="remindersPartialNote" style="display:none;"></div>
+  </div>
 
   <div class="grid">
     <a href="payments.html" class="card live payments">
@@ -151,89 +234,310 @@
         </div>
       </div>
       <h2>Payments</h2>
-      <p>Track payments.</p>
-      <div class="card-stat"></div>      
+      <p>Track beneficiary payments — who's paid, what's pending, and what's overdue.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
+      <span class="card-cta">
+        Open Payments
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </span>
     </a>
 
-    <a href="documents.html" class="card live payments">
+    <a href="documents.html" class="card live documents">
       <div class="card-top">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
         </div>
       </div>
       <h2>Documents</h2>
-      <p>Store documents.</p>
-      <div class="card-stat"></div>      
+      <p>Store proof of payments, IDs, insurance papers, and anything worth keeping safe.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
+      <span class="card-cta">
+        Open Documents
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </span>
     </a>
 
-    <a href="expenses.html" class="card live payments">
+    <a href="expenses.html" class="card live expenses">
       <div class="card-top">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
       </div>
       <h2>Expenses</h2>
-      <p>Daily spending.</p>
-      <div class="card-stat"></div>      
+      <p>Everyday spending — groceries, transport, takeout, and everything else.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
+      <span class="card-cta">
+        Open Expenses
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </span>
     </a>
 
-    <a href="family-details.html" class="card live payments">
+    <a href="bond.html" class="card live bond">
+      <div class="card-top">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>
+        </div>
+      </div>
+      <h2>Bond</h2>
+      <p>Monthly bond installments and any extra payments toward the balance.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
+      <span class="card-cta">
+        Open Bond
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </span>
+    </a>
+
+    <a href="family-details.html" class="card live family">
       <div class="card-top">
         <div class="card-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
       </div>
-      <h2>Family</h2>
-      <p>Key family info.</p>
-      <div class="card-stat"></div>      
+      <h2>Family Details</h2>
+      <p>Profiles, key info, and documents for each family member.</p>
+      <div class="card-stat">Stored in a folder on this PC</div>
+      <span class="card-cta">
+        Open Family Details
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </span>
     </a>
-
-    <a href="bond.html" class="card live payments">
-      <div class="card-top">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 10.5L12 3l9 7.5"/>
-            <path d="M5 9.5V21h14V9.5"/>
-            <path d="M9 21v-6h6v6"/>
-          </svg>
-        </div>
-      </div>
-      <h2>Bond</h2>
-      <p>Track payments.</p>
-      <div class="card-stat"></div>      
-    </a>
-
-    <a href="medical.html" class="card live payments">
-      <div class="card-top">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A4.5 4.5 0 0 0 17.5 4c-1.7 0-3 .7-4.5 2.5C11.5 4.7 10.2 4 8.5 4A4.5 4.5 0 0 0 4 8.5C4 13 12 21 12 21s2.5-2.4 4.5-4.5"/><path d="M9 11h3m0 0h3m-3 0V8m0 3v3"/></svg>
-        </div>
-      </div>
-      <h2>Medical</h2>
-      <p>Medical receipts.</p>
-      <div class="card-stat"></div>     
-    </a>
-
-    <a href="pets.html" class="card live payments">
-      <div class="card-top">
-        <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <ellipse cx="12" cy="16.2" rx="7" ry="5.5"/>
-            <ellipse cx="5.5" cy="7.5" rx="2.9" ry="4"/>
-            <ellipse cx="12" cy="4.8" rx="2.9" ry="4"/>
-            <ellipse cx="18.5" cy="7.5" rx="2.9" ry="4"/>
-          </svg>
-        </div>
-      </div>
-      <h2>Pets</h2>
-      <p>Pets info.</p>
-      <div class="card-stat"></div>      
-    </a>
-    
   </div>
 </div>
 
-<footer class="note">Household Manager · v0.1 ·</footer>
+<footer class="note">Family Ledger · v0.1 · Payments, Expenses, Bond, Documents, and Family Details are all live</footer>
+
+<script>
+(function(){
+  const el = (id) => document.getElementById(id);
+  const IDB_NAME = 'familyLedgerHandles';
+  const IDB_KEY = 'homeRemindersFolder';
+
+  let dirHandle = null;
+
+  function idbOpen(){
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbGet(key){
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbSet(key, value){
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  if(!('showDirectoryPicker' in window)){
+    el('remindersSupportNote').style.display = 'block';
+    el('remindersConnectBtn').disabled = true;
+  }
+
+  async function readJsonFile(name){
+    try{
+      const fh = await dirHandle.getFileHandle(name);
+      const file = await fh.getFile();
+      return JSON.parse(await file.text());
+    }catch(e){ return null; }
+  }
+
+  function daysUntil(dateStr){
+    const target = new Date(dateStr + 'T00:00:00');
+    const today = new Date(new Date().toDateString());
+    return Math.round((target - today) / 86400000);
+  }
+  function currency(n){
+    return 'R' + Number(n||0).toLocaleString('en-ZA', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function whenLabel(diff){
+    if(diff < 0) return `Overdue ${Math.abs(diff)}d`;
+    if(diff === 0) return 'Today';
+    if(diff === 1) return 'Tomorrow';
+    if(diff <= 7) return `In ${diff}d`;
+    return new Date(new Date().setDate(new Date().getDate()+diff)).toLocaleDateString('en-ZA', {day:'2-digit', month:'short'});
+  }
+  function urgencyClass(diff){
+    if(diff < 0) return 'overdue';
+    if(diff <= 7) return 'soon';
+    return '';
+  }
+  function nextBirthday(dobStr){
+    const dob = new Date(dobStr + 'T00:00:00');
+    const today = new Date(new Date().toDateString());
+    let next = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+    if(next < today) next = new Date(today.getFullYear()+1, dob.getMonth(), dob.getDate());
+    return next.toISOString().slice(0,10);
+  }
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  const ICONS = {
+    payment: '<path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/><path d="M2 9h20"/>',
+    bond: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/>',
+    vaccine: '<path d="M19 3 21 5M9 13l-5.5 5.5a1.5 1.5 0 0 0 2 2L11 15M13 5l6 6M11 7l6 6M8 10l6 6"/>',
+    checkup: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/>',
+    birthday: '<path d="M12 2s-2 2.5-2 4a2 2 0 0 0 4 0c0-1.5-2-4-2-4Z"/><path d="M5 21V12a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9"/><path d="M3 21h18M3 15h18"/>'
+  };
+
+  async function buildReminders(){
+    const items = [];
+    const missing = [];
+
+    const payments = await readJsonFile('payments.json');
+    if(payments === null){ missing.push('Payments'); }
+    else {
+      payments.filter(p => p.date && (p.status === 'pending' || p.status === 'overdue')).forEach(p => {
+        items.push({
+          type:'payment', date:p.date,
+          title:`${p.recipient} — ${currency(p.amount)}`,
+          sub: p.status === 'overdue' ? 'Overdue payment' : 'Payment due'
+        });
+      });
+    }
+
+    const bond = await readJsonFile('bond.json');
+    if(bond === null){ missing.push('Bond'); }
+    else if(bond.settings && bond.settings.monthlyInstallment > 0){
+      const currentMonth = new Date().toISOString().slice(0,7);
+      const paidThisMonth = (bond.entries||[]).some(p => p.type === 'Monthly Installment' && (p.date||'').slice(0,7) === currentMonth);
+      if(!paidThisMonth){
+        items.push({
+          type:'bond', date: new Date().toISOString().slice(0,10),
+          title: `${bond.settings.name || 'Bond'} installment — ${currency(bond.settings.monthlyInstallment)}`,
+          sub: 'Not yet logged this month'
+        });
+      }
+    }
+
+    const pets = await readJsonFile('pets.json');
+    if(pets === null){ missing.push('Pets'); }
+    else {
+      pets.forEach(pet => {
+        if(pet.nextCheckup){
+          items.push({ type:'checkup', date:pet.nextCheckup, title:`${pet.name} — checkup`, sub:'Vet checkup' });
+        }
+        (pet.vaccinations||[]).forEach(v => {
+          if(v.nextDue){
+            items.push({ type:'vaccine', date:v.nextDue, title:`${pet.name} — ${v.name}`, sub:'Vaccination due' });
+          }
+        });
+      });
+    }
+
+    const familyMembers = await readJsonFile('family-members.json');
+    if(familyMembers === null){ missing.push('Family Details'); }
+    else {
+      familyMembers.forEach(m => {
+        if(m.dob){
+          items.push({ type:'birthday', date: nextBirthday(m.dob), title:`${m.name}'s birthday`, sub: m.relationship || 'Birthday' });
+        }
+      });
+    }
+
+    items.forEach(i => i._diff = daysUntil(i.date));
+    items.sort((a,b) => a._diff - b._diff);
+
+    return { items, missing };
+  }
+
+  function renderReminders(items, missing){
+    const list = el('remindersList');
+    const partialNote = el('remindersPartialNote');
+
+    if(items.length === 0){
+      list.innerHTML = '<div class="reminders-empty">Nothing upcoming right now — you\'re all caught up.</div>';
+    } else {
+      list.innerHTML = items.slice(0, 8).map(i => `
+        <div class="reminder-row ${urgencyClass(i._diff)}">
+          <div class="r-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${ICONS[i.type]}</svg></div>
+          <div class="r-body">
+            <div class="r-title">${escapeHtml(i.title)}</div>
+            <div class="r-sub">${escapeHtml(i.sub)}</div>
+          </div>
+          <div class="r-when">${whenLabel(i._diff)}</div>
+        </div>
+      `).join('');
+    }
+    list.style.display = 'flex';
+
+    if(missing.length > 0){
+      partialNote.textContent = `No data found yet for: ${missing.join(', ')} — open those modules and connect this same folder to include them here.`;
+      partialNote.style.display = 'block';
+    } else {
+      partialNote.style.display = 'none';
+    }
+  }
+
+  async function afterConnect(){
+    el('remindersConnect').style.display = 'none';
+    el('remindersActions').style.display = 'flex';
+    const { items, missing } = await buildReminders();
+    renderReminders(items, missing);
+  }
+
+  async function connectFolder(){
+    try{
+      dirHandle = await window.showDirectoryPicker();
+      await idbSet(IDB_KEY, dirHandle);
+      await afterConnect();
+    }catch(e){ /* cancelled */ }
+  }
+  async function tryAutoReconnect(){
+    let stored;
+    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
+    if(!stored) return;
+    try{
+      const perm = await stored.queryPermission({mode:'read'});
+      if(perm === 'granted'){
+        dirHandle = stored;
+        await afterConnect();
+      } else {
+        el('remindersConnect').querySelector('p').textContent = `Reconnect "${stored.name}" to see what's coming up.`;
+        el('remindersConnectBtn').textContent = '';
+        el('remindersConnectBtn').innerHTML = 'Reconnect Folder';
+        el('remindersConnectBtn').onclick = async () => {
+          const p = await stored.requestPermission({mode:'read'});
+          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
+        };
+      }
+    }catch(e){ /* fall back to normal connect */ }
+  }
+
+  el('remindersConnectBtn').addEventListener('click', connectFolder);
+  el('remindersChangeFolderBtn').addEventListener('click', () => {
+    el('remindersActions').style.display = 'none';
+    el('remindersList').style.display = 'none';
+    el('remindersPartialNote').style.display = 'none';
+    el('remindersConnect').style.display = 'flex';
+    el('remindersConnect').querySelector('p').textContent = 'Connect the folder where your modules save their data to see what\'s coming up.';
+    el('remindersConnectBtn').innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+      Connect Folder
+    `;
+    el('remindersConnectBtn').onclick = connectFolder;
+  });
+  el('remindersRefreshBtn').addEventListener('click', async () => {
+    if(!dirHandle) return;
+    const { items, missing } = await buildReminders();
+    renderReminders(items, missing);
+  });
+
+  tryAutoReconnect();
+})();
+</script>
 
 </body>
 </html>
