@@ -816,9 +816,14 @@
       expenses.push({id: crypto.randomUUID(), ...data});
       showToast('Expense added');
     }
-    await writeManifest();
-    closeDrawer();
-    render();
+    try {
+      await writeManifest();
+      closeDrawer();
+      render();
+    } catch(err) {
+      console.error("Save failed:", err);
+      showToast("Save failed - folder access lost");
+    }
   });
 
   async function handleDelete(id){
