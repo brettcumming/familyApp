@@ -168,6 +168,41 @@
     background-size:10px 1px; background-repeat:repeat-x; opacity:0.7;
   }
 
+  .medaid-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:20px 22px;
+    margin-bottom:24px;
+  }
+  .medaid-card-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .medaid-card-header h3{font-size:13.5px; margin:0; color:var(--text-secondary); font-weight:700;}
+  .medaid-empty{font-size:13px; color:var(--text-muted);}
+  .medaid-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-bottom:16px;}
+  .medaid-field .mlabel{font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); font-weight:600; margin-bottom:4px;}
+  .medaid-field .mvalue{font-size:15px; font-weight:600; color:var(--text-primary);}
+  .medaid-field .mvalue.mono{font-family:'JetBrains Mono';}
+  .medaid-members{display:flex; flex-wrap:wrap; gap:8px;}
+  .member-chip{
+    display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--border-soft);
+    border-radius:20px; padding:6px 12px 6px 6px; font-size:12.5px;
+  }
+  .member-chip .chip-avatar{
+    width:24px; height:24px; border-radius:50%; background:linear-gradient(155deg, var(--accent), #2a4fc4);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; flex-shrink:0;
+  }
+  .member-chip .chip-name{font-weight:600; color:var(--text-primary);}
+  .member-chip .chip-dob{color:var(--text-muted);}
+
+  .member-row{
+    display:flex; gap:8px; align-items:center; margin-bottom:8px;
+  }
+  .member-row input{flex:1;}
+  .member-row .icon-btn{flex-shrink:0;}
+  .add-member-row-btn{
+    display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--accent-hover);
+    background:none; border:none; cursor:pointer; padding:6px 0; font-weight:600;
+  }
+  .add-member-row-btn svg{width:14px; height:14px;}
+
   .breakdown{
     background:linear-gradient(160deg, var(--panel), var(--panel-alt));
     border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:20px 22px;
@@ -383,8 +418,9 @@
         </div>
       </a>      
     </nav>
+
     <div class="sidebar-footer">
-      <span>Family Application · v0.1</span>    
+      <span>Family Application · v0.1</span>     
     </div>
   </aside>
 
@@ -426,6 +462,14 @@
             Add Expense
           </button>
         </div>
+      </div>
+
+      <div class="medaid-card" id="medAidCard">
+        <div class="medaid-card-header">
+          <h3>Medical Aid Details</h3>
+          <button class="btn btn-ghost" id="medAidEditBtn">Edit Details</button>
+        </div>
+        <div id="medAidContent"></div>
       </div>
 
       <div class="stats">
@@ -502,7 +546,9 @@
             Add Expense
           </button>
         </div>
-      </div>    
+      </div>
+
+      <footer class="note">Medical expenses and receipts are stored in your connected folder.</footer>
     </div>
   </main>
 </div>
@@ -548,7 +594,7 @@
     </div>
     <div class="field">
       <label for="fNotes">Notes (optional)</label>
-      <input type="text" id="fNotes" placeholder="e.g. Claims from med aid">
+      <input type="text" id="fNotes" placeholder="e.g. Claims from medical aid">
     </div>
 
     <div id="receiptsSection" style="display:none;">
@@ -569,6 +615,43 @@
   </div>
 </div>
 
+<!-- Medical Aid Details Drawer -->
+<div class="drawer" id="medAidDrawer">
+  <div class="drawer-header">
+    <h2>Medical Aid Details</h2>
+    <button class="drawer-close" id="medAidClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div class="field">
+      <label for="maScheme">Medical aid scheme</label>
+      <input type="text" id="maScheme" placeholder="e.g. Discovery Health">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="maCard">Card number</label>
+        <input type="text" id="maCard" placeholder="e.g. 123456789">
+      </div>
+      <div class="field">
+        <label for="maContact">Contact number</label>
+        <input type="text" id="maContact" placeholder="e.g. 0860 99 88 77">
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:10px;">Covered Members</div>
+    <div id="membersRows"></div>
+    <button class="add-member-row-btn" id="addMemberRowBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Add Member
+    </button>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-ghost" id="medAidCancelBtn">Cancel</button>
+    <button class="btn btn-primary" id="medAidSaveBtn">Save Details</button>
+  </div>
+</div>
+
 <div class="toast" id="toast">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
   <span id="toastText">Saved</span>
@@ -584,6 +667,8 @@
 
   let dirHandle = null;
   let entries = [];
+  let medAidSettings = { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
+  let editingMembers = [];
   let editingId = null;
   let currentEntryDir = null;
   let receiptThumbs = {};
@@ -648,6 +733,13 @@
     const clean = (name||'').trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g,'').toLowerCase();
     return `${clean || 'entry'}_${id.slice(0,8)}`;
   }
+  function initials(name){
+    return (name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('') || '?';
+  }
+  function formatDob(d){
+    if(!d) return 'DOB not set';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-ZA', {day:'2-digit', month:'short', year:'numeric'});
+  }
 
   if(!('showDirectoryPicker' in window)){
     el('supportWarning').style.display = 'block';
@@ -664,7 +756,7 @@
   async function writeManifest(){
     const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
     const writable = await fh.createWritable();
-    await writable.write(JSON.stringify(entries, null, 2));
+    await writable.write(JSON.stringify({ settings: medAidSettings, entries }, null, 2));
     await writable.close();
   }
 
@@ -680,9 +772,22 @@
     el('vaultWrap').style.display = 'block';
     el('folderName').textContent = dirHandle.name;
     const existing = await readManifest();
-    entries = existing === null ? [] : existing;
-    if(existing === null) await writeManifest();
+    if(existing === null){
+      entries = [];
+      medAidSettings = { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
+      await writeManifest();
+    } else if(Array.isArray(existing)){
+      // migrating from an earlier version of this file that stored a plain array
+      entries = existing;
+      medAidSettings = { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
+      await writeManifest();
+    } else {
+      entries = existing.entries || [];
+      medAidSettings = existing.settings || { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
+      medAidSettings.members = medAidSettings.members || [];
+    }
     render();
+    renderMedAidCard();
   }
   async function tryAutoReconnect(){
     let stored;
@@ -1047,7 +1152,7 @@
   el('emptyAddBtn').addEventListener('click', () => openDrawer(null));
   el('drawerClose').addEventListener('click', closeDrawer);
   el('cancelBtn').addEventListener('click', closeDrawer);
-  el('overlay').addEventListener('click', closeDrawer);
+  el('overlay').addEventListener('click', () => { closeDrawer(); closeMedAidDrawer(); });
   el('exportBtn').addEventListener('click', exportCsv);
 
   el('tableBody').addEventListener('click', (e) => {
@@ -1065,7 +1170,115 @@
     el(id).addEventListener('change', render);
   });
 
-  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+      if(el('drawer').classList.contains('show')) closeDrawer();
+      if(el('medAidDrawer').classList.contains('show')) closeMedAidDrawer();
+    }
+  });
+
+  // ---- Medical Aid Details card + drawer ----
+  function renderMedAidCard(){
+    const content = el('medAidContent');
+    const s = medAidSettings;
+    if(!s.schemeName && !s.cardNumber && !s.contactNumber && (!s.members || s.members.length === 0)){
+      content.innerHTML = '<div class="medaid-empty">No medical aid details added yet — click "Edit Details" to add your scheme, card number, and covered members.</div>';
+      return;
+    }
+    const membersHtml = (s.members||[]).length
+      ? `<div class="medaid-members">${s.members.map(m => `
+          <div class="member-chip">
+            <div class="chip-avatar">${escapeHtml(initials(m.name))}</div>
+            <span class="chip-name">${escapeHtml(m.name || 'Unnamed')}</span>
+            <span class="chip-dob">${escapeHtml(formatDob(m.dob))}</span>
+          </div>
+        `).join('')}</div>`
+      : '<div class="medaid-empty">No members added yet.</div>';
+
+    content.innerHTML = `
+      <div class="medaid-grid">
+        <div class="medaid-field">
+          <div class="mlabel">Scheme</div>
+          <div class="mvalue">${escapeHtml(s.schemeName || '—')}</div>
+        </div>
+        <div class="medaid-field">
+          <div class="mlabel">Card Number</div>
+          <div class="mvalue mono">${escapeHtml(s.cardNumber || '—')}</div>
+        </div>
+        <div class="medaid-field">
+          <div class="mlabel">Contact Number</div>
+          <div class="mvalue">${escapeHtml(s.contactNumber || '—')}</div>
+        </div>
+      </div>
+      ${membersHtml}
+    `;
+  }
+
+  function renderMemberRows(){
+    const wrap = el('membersRows');
+    if(editingMembers.length === 0){
+      wrap.innerHTML = '';
+      return;
+    }
+    wrap.innerHTML = editingMembers.map((m, i) => `
+      <div class="member-row" data-idx="${i}">
+        <input type="text" class="member-name-input" placeholder="Name" value="${escapeHtml(m.name)}">
+        <input type="date" class="member-dob-input" value="${escapeHtml(m.dob||'')}">
+        <button type="button" class="icon-btn danger" data-remove-member="${i}" aria-label="Remove member">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    `).join('');
+
+    wrap.querySelectorAll('.member-row').forEach(row => {
+      const idx = Number(row.dataset.idx);
+      row.querySelector('.member-name-input').addEventListener('input', (e) => { editingMembers[idx].name = e.target.value; });
+      row.querySelector('.member-dob-input').addEventListener('input', (e) => { editingMembers[idx].dob = e.target.value; });
+    });
+    wrap.querySelectorAll('[data-remove-member]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editingMembers.splice(Number(btn.dataset.removeMember), 1);
+        renderMemberRows();
+      });
+    });
+  }
+
+  el('addMemberRowBtn').addEventListener('click', () => {
+    editingMembers.push({ name: '', dob: '' });
+    renderMemberRows();
+  });
+
+  function openMedAidDrawer(){
+    el('maScheme').value = medAidSettings.schemeName || '';
+    el('maCard').value = medAidSettings.cardNumber || '';
+    el('maContact').value = medAidSettings.contactNumber || '';
+    editingMembers = (medAidSettings.members || []).map(m => ({...m}));
+    renderMemberRows();
+    el('medAidDrawer').classList.add('show');
+    el('overlay').classList.add('show');
+    setTimeout(() => el('maScheme').focus(), 200);
+  }
+  function closeMedAidDrawer(){
+    el('medAidDrawer').classList.remove('show');
+    el('overlay').classList.remove('show');
+  }
+  el('medAidEditBtn').addEventListener('click', openMedAidDrawer);
+  el('medAidClose').addEventListener('click', closeMedAidDrawer);
+  el('medAidCancelBtn').addEventListener('click', closeMedAidDrawer);
+  el('medAidSaveBtn').addEventListener('click', async () => {
+    medAidSettings = {
+      schemeName: el('maScheme').value.trim(),
+      cardNumber: el('maCard').value.trim(),
+      contactNumber: el('maContact').value.trim(),
+      members: editingMembers
+        .map(m => ({ name: m.name.trim(), dob: m.dob || '' }))
+        .filter(m => m.name)
+    };
+    await writeManifest();
+    renderMedAidCard();
+    closeMedAidDrawer();
+    showToast('Medical aid details saved');
+  });
 
   tryAutoReconnect();
 })();
