@@ -1,1 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Ledger — Pets</title>
+<style>body{visibility:hidden;}</style>
+<script src="auth.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f1e;
+    --bg-elevated:#0d1426;
+    --panel:#121b31;
+    --panel-alt:#16213b;
+    --border:#22304f;
+    --border-soft:rgba(255,255,255,0.06);
+    --text-primary:#eaf0fb;
+    --text-secondary:#9aa8c7;
+    --text-muted:#66759c;
+    --accent:#4c7cf0;
+    --accent-hover:#6690ff;
+    --accent-soft:rgba(76,124,240,0.14);
+    --success:#33d6a6;
+    --success-soft:rgba(51,214,166,0.12);
+    --warning:#f0b84c;
+    --warning-soft:rgba(240,184,76,0.12);
+    --danger:#f0664c;
+    --danger-soft:rgba(240,102,76,0.13);
+    --radius-sm:8px;
+    --radius-md:12px;
+    --radius-lg:18px;
+    --shadow-soft: 0 8px 24px rgba(0,0,0,0.35);
+    --shadow-lift: 0 16px 40px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(76,124,240,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(51,214,166,0.05), transparent 60%),
+      var(--bg);
+    color:var(--text-primary);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Sora', sans-serif;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+  button:focus-visible, input:focus-visible, select:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  .app{display:grid; grid-template-columns:260px 1fr; min-height:100vh;}
+
+  .sidebar{
+    background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+    border-right:1px solid var(--border-soft);
+    padding:28px 20px; display:flex; flex-direction:column; gap:32px; position:relative;
+  }
+  .sidebar::before{
+    content:""; position:absolute; top:0; left:0; bottom:0; width:2px;
+    background:linear-gradient(180deg, var(--accent), transparent 70%); opacity:0.6;
+  }
+  .brand{display:flex; align-items:center; gap:12px; padding:0 4px;}
+  .brand-mark{
+    width:40px; height:40px; border-radius:11px;
+    background:linear-gradient(155deg, var(--accent), #2a4fc4);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(76,124,240,0.35); flex-shrink:0;
+  }
+  .brand-mark svg{width:20px; height:20px;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.25;}
+  .brand-text strong{font-family:'Sora'; font-size:15.5px; font-weight:700; letter-spacing:0.2px;}
+  .brand-text span{font-size:11.5px; color:var(--text-muted); font-weight:500;}
+  .nav{display:flex; flex-direction:column; gap:4px;}
+  .nav-label{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px;
+    color:var(--text-muted); font-weight:600; padding:0 12px; margin-bottom:6px;
+  }
+  .nav-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; border-radius:8px; font-size:14px; font-weight:500;
+    color:var(--text-secondary); cursor:pointer; transition:background .15s ease, color .15s ease;
+    border:1px solid transparent; text-decoration:none;
+  }
+  .nav-item .left{display:flex; align-items:center; gap:10px;}
+  .nav-item svg{width:17px; height:17px; opacity:0.85;}
+  .nav-item.active{background:var(--accent-soft); color:var(--text-primary); border-color:rgba(76,124,240,0.35);}
+  .nav-item:not(.active):hover{background:rgba(255,255,255,0.03); color:var(--text-primary);}
+  .sidebar-footer{
+    margin-top:auto; padding-top:18px; border-top:1px dashed var(--border);
+    font-size:11.5px; color:var(--text-muted); display:flex; flex-direction:column; gap:4px;
+  }
+
+  .main{padding:32px 40px 60px; max-width:1280px; width:100%;}
+  .topbar{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:24px;
+    margin-bottom:28px; flex-wrap:wrap;
+  }
+  .topbar h1{font-size:26px; font-weight:700; margin:0 0 6px; letter-spacing:-0.3px;}
+  .topbar p{margin:0; color:var(--text-secondary); font-size:14px; max-width:50ch;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px;
+    border:1px solid transparent; font-size:13.5px; font-weight:600; cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  .btn svg{width:16px; height:16px;}
+  .btn-primary{
+    background:linear-gradient(155deg, var(--accent-hover), var(--accent)); color:#08101f;
+    box-shadow:0 8px 20px rgba(76,124,240,0.28);
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 24px rgba(76,124,240,0.38);}
+  .btn-primary:disabled{opacity:0.5; cursor:not-allowed; transform:none;}
+  .btn-ghost{background:var(--panel); color:var(--text-secondary); border-color:var(--border);}
+  .btn-ghost:hover{color:var(--text-primary); border-color:rgba(255,255,255,0.18); background:var(--panel-alt);}
+  .actions-row{display:flex; gap:10px; flex-shrink:0; flex-wrap:wrap;}
+
+  .connect-wrap{
+    max-width:460px; margin:70px auto; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:34px;
+    box-shadow:var(--shadow-soft); text-align:center;
+  }
+  .connect-wrap .icon-circle{
+    width:52px; height:52px; border-radius:14px; background:var(--accent-soft); color:var(--accent-hover);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
+  }
+  .connect-wrap .icon-circle svg{width:24px; height:24px;}
+  .connect-wrap h2{margin:0 0 8px; font-size:19px;}
+  .connect-wrap p{margin:0 0 22px; color:var(--text-secondary); font-size:13.5px; line-height:1.55;}
+  .connect-wrap .btn-primary{margin:0 auto;}
+  .support-warning{
+    background:var(--warning-soft); border:1px solid rgba(240,184,76,0.3); color:var(--warning);
+    padding:12px 16px; border-radius:10px; font-size:12.5px; margin-top:18px; text-align:left; line-height:1.5;
+  }
+  .folder-badge{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted);}
+  .folder-badge svg{width:14px; height:14px; color:var(--text-secondary);}
+  .folder-badge strong{color:var(--text-secondary); font-weight:600;}
+
+  .stats{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:24px;}
+  .stat-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:18px 20px;
+  }
+  .stat-card .icon-wrap{
+    width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .stat-card .icon-wrap svg{width:16px; height:16px;}
+  .stat-card .label{font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;}
+  .stat-card .value{font-family:'Sora'; font-size:20px; font-weight:700; margin-top:6px;}
+  .stat-card .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
+  .stat-card.count .icon-wrap{background:var(--accent-soft); color:var(--accent-hover);}
+  .stat-card.expenses .icon-wrap{background:var(--success-soft); color:var(--success);}
+  .stat-card.vaccine .icon-wrap{background:var(--warning-soft); color:var(--warning);}
+  .stat-card.checkup .icon-wrap{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
+
+  .pet-slots{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .pet-slot{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:24px;
+    cursor:pointer; transition:transform .15s ease, border-color .15s ease;
+    display:flex; flex-direction:column; gap:16px; min-height:200px;
+  }
+  .pet-slot:hover{transform:translateY(-2px); border-color:rgba(255,255,255,0.15);}
+  .pet-slot.empty{
+    align-items:center; justify-content:center; text-align:center; border:2px dashed var(--border);
+    background:transparent; color:var(--text-muted);
+  }
+  .pet-slot.empty:hover{border-color:var(--accent); color:var(--accent-hover);}
+  .pet-slot.empty svg{width:28px; height:28px; margin-bottom:4px;}
+  .pet-slot.empty span{font-size:13.5px; font-weight:600;}
+
+  .pet-slot-header{display:flex; align-items:center; gap:14px;}
+  .pet-avatar{
+    width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(155deg, var(--accent), #2a4fc4); color:#fff; font-family:'Sora';
+    font-weight:700; font-size:20px; flex-shrink:0; overflow:hidden;
+  }
+  .pet-avatar img{width:100%; height:100%; object-fit:cover;}
+  .pet-slot h3{font-size:17px; margin:0; font-weight:700;}
+  .pet-slot .breed{font-size:12.5px; color:var(--text-muted); margin-top:2px;}
+  .pet-slot-facts{display:flex; flex-direction:column; gap:8px; font-size:12.5px; color:var(--text-secondary);}
+  .pet-slot-facts .fact{display:flex; align-items:center; gap:8px;}
+  .pet-slot-facts svg{width:14px; height:14px; color:var(--text-muted); flex-shrink:0;}
+  .pet-slot-facts .fact.warn{color:var(--warning);}
+  .pet-slot-facts .fact.warn svg{color:var(--warning);}
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(4,7,16,0.6); backdrop-filter:blur(2px);
+    opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .drawer{
+    position:fixed; top:0; right:0; bottom:0; width:560px; max-width:95vw;
+    background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+    border-left:1px solid var(--border); box-shadow:var(--shadow-lift);
+    transform:translateX(100%); transition:transform .25s cubic-bezier(.4,0,.2,1);
+    z-index:50; display:flex; flex-direction:column;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-header{
+    padding:22px 24px; border-bottom:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .drawer-header h2{font-size:17px; margin:0; font-weight:700;}
+  .drawer-close{
+    width:30px; height:30px; border-radius:8px; background:var(--panel); border:1px solid var(--border);
+    color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .drawer-close:hover{color:var(--text-primary);}
+  .drawer-body{padding:22px 24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;}
+  .field label{display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .field-row.three{grid-template-columns:1fr 1fr 1fr;}
+  input, select, textarea{
+    background:var(--panel); border:1px solid var(--border); color:var(--text-primary);
+    padding:9px 12px; border-radius:9px; font-size:13.5px; width:100%; font-family:inherit;
+  }
+  textarea{resize:vertical; min-height:56px;}
+  input::placeholder, textarea::placeholder{color:var(--text-muted);}
+  select{cursor:pointer;}
+  .drawer-footer{padding:18px 24px; border-top:1px solid var(--border-soft); display:flex; gap:10px;}
+  .drawer-footer .btn{flex:1; justify-content:center;}
+  .drawer-footer .btn.danger-ghost{flex:0 0 auto;}
+
+  .section-block{
+    border-top:1px dashed var(--border); padding-top:16px; margin-top:4px;
+  }
+  .section-block-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .section-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted);
+    font-weight:700;
+  }
+  .save-hint{
+    font-size:11.5px; color:var(--text-muted); background:var(--panel); border:1px solid var(--border-soft);
+    border-radius:8px; padding:10px 12px; line-height:1.5;
+  }
+
+  .avatar-edit{display:flex; align-items:center; gap:16px;}
+  .avatar-edit .avatar-preview{
+    width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(155deg, var(--accent), #2a4fc4); color:#fff; font-family:'Sora';
+    font-weight:700; font-size:20px; flex-shrink:0; overflow:hidden; border:1px solid var(--border-soft);
+  }
+  .avatar-edit .avatar-preview img{width:100%; height:100%; object-fit:cover;}
+  .avatar-edit-actions{display:flex; flex-direction:column; gap:6px;}
+  .avatar-edit-actions .btn{padding:7px 14px; font-size:12.5px;}
+  .avatar-edit-actions input[type=file]{display:none;}
+
+  .mini-list{display:flex; flex-direction:column; gap:8px;}
+  .mini-row{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--panel);
+    border:1px solid var(--border-soft); border-radius:9px; font-size:12.5px;
+  }
+  .mini-row .mtitle{font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .mini-row .msub{color:var(--text-muted); flex-shrink:0;}
+  .mini-row.overdue{border-color:rgba(240,102,76,0.35);}
+  .mini-row.overdue .msub{color:var(--danger);}
+  .no-items{font-size:12.5px; color:var(--text-muted); text-align:center; padding:10px 0;}
+
+  .add-row-card{
+    border:1px solid var(--border-soft); border-radius:10px; padding:12px; background:var(--panel);
+  }
+  .add-row-card .field-row{margin-bottom:8px;}
+  .add-row-card .field-row:last-child{margin-bottom:0;}
+  .add-row-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px; font-size:12.5px; color:var(--accent-hover);
+    background:none; border:1px dashed var(--border); border-radius:9px; cursor:pointer; padding:9px 0; font-weight:600;
+    width:100%;
+  }
+  .add-row-btn:hover{border-color:var(--accent);}
+  .add-row-btn svg{width:14px; height:14px;}
+
+  .mini-dropzone{
+    border:2px dashed var(--border); border-radius:10px; padding:18px; text-align:center;
+    transition:border-color .15s ease, background .15s ease; background:var(--panel);
+  }
+  .mini-dropzone.drag{border-color:var(--accent); background:var(--accent-soft);}
+  .mini-dropzone svg{width:22px; height:22px; color:var(--text-muted); margin-bottom:6px;}
+  .mini-dropzone p{margin:0 0 2px; font-size:13px; color:var(--text-secondary); font-weight:500;}
+  .mini-dropzone span{font-size:11.5px; color:var(--text-muted);}
+  .mini-dropzone .browse{color:var(--accent-hover); font-weight:600; cursor:pointer;}
+  .mini-dropzone input[type=file]{display:none;}
+
+  .doc-row{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--panel);
+    border:1px solid var(--border-soft); border-radius:9px; font-size:12.5px;
+  }
+  .doc-row .dicon{
+    width:30px; height:30px; border-radius:7px; background:var(--panel-alt); display:flex;
+    align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
+  }
+  .doc-row .dicon img{width:100%; height:100%; object-fit:cover;}
+  .doc-row .dicon svg{width:14px; height:14px; color:var(--text-muted);}
+  .doc-row .dname{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;}
+  .doc-row .dmeta{color:var(--text-muted); font-size:11px; flex-shrink:0;}
+  .doc-row .drow-actions{display:flex; gap:4px; flex-shrink:0;}
+
+  .icon-btn{
+    width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer;
+    transition:background .12s ease, color .12s ease, border-color .12s ease; flex-shrink:0;
+  }
+  .icon-btn svg{width:13.5px; height:13.5px;}
+  .icon-btn:hover{background:var(--panel-alt); color:var(--text-primary); border-color:var(--border);}
+  .icon-btn.danger:hover{color:var(--danger); border-color:rgba(240,102,76,0.35); background:var(--danger-soft);}
+
+  .expense-total{
+    display:flex; justify-content:space-between; align-items:center; font-size:13px;
+    color:var(--text-secondary); padding:2px 2px 6px;
+  }
+  .expense-total strong{font-family:'JetBrains Mono'; color:var(--text-primary); font-size:14px;}
+
+  .toast{
+    position:fixed; bottom:26px; right:26px; background:var(--panel-alt); border:1px solid var(--border);
+    padding:13px 18px; border-radius:10px; font-size:13.5px; display:flex; align-items:center; gap:10px;
+    box-shadow:var(--shadow-lift); transform:translateY(20px); opacity:0; transition:all .25s ease; z-index:60;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+  .toast svg{width:16px; height:16px; color:var(--success); flex-shrink:0;}
+
+  footer.note{margin-top:30px; color:var(--text-muted); font-size:12px; text-align:center;}
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{flex-direction:row; align-items:center; padding:16px 20px; gap:16px; overflow-x:auto;}
+    .sidebar::before{display:none;}
+    .nav{flex-direction:row;}
+    .nav-label{display:none;}
+    .sidebar-footer{display:none;}
+    .main{padding:24px 18px 50px;}
+    .stats{grid-template-columns:1fr 1fr;}
+    .pet-slots{grid-template-columns:1fr;}
+    .field-row, .field-row.three{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
+      </div>
+      <div class="brand-text">
+        <strong>Family Ledger</strong>
+        <span>Pets</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Workspace</div>
+      <a href="index.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+          Home
+        </div>
+      </a>
+      <a href="payments.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg>
+          Payments
+        </div>
+      </a>
+      <a href="expenses.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Expenses
+        </div>
+      </a>
+      <a href="bond.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>
+          Bond
+        </div>
+      </a>
+      <a href="medical.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A4.5 4.5 0 0 0 17.5 4c-1.7 0-3 .7-4.5 2.5C11.5 4.7 10.2 4 8.5 4A4.5 4.5 0 0 0 4 8.5C4 13 12 21 12 21s2.5-2.4 4.5-4.5"/></svg>
+          Medical
+        </div>
+      </a>
+      <a href="pets.html" class="nav-item active">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="15" r="2"/><path d="M9 10c-2.2 0-4 2-4 4.5S6.5 19 9 19c1.3 0 2-1 3-1s1.7 1 3 1c2.5 0 4-2 4-4.5S15.2 10 13 10c-1 0-1.5.5-2 .5s-1-.5-2-.5Z"/></svg>
+          Pets
+        </div>
+      </a>
+      <a href="documents.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          Documents
+        </div>
+      </a>
+      <a href="family-details.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          Family Details
+        </div>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>Family Ledger · v0.1</span>
+      <span>Local files · stored on this device</span>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="connect-wrap" id="connectWrap">
+      <div class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+      </div>
+      <h2>Connect a folder</h2>
+      <p>Pick a folder on this PC — pet profiles, expenses, and documents will be saved there. You can reuse the same folder as your other modules, or choose a new one.</p>
+      <button class="btn btn-primary" id="connectBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+        Choose Folder
+      </button>
+      <div class="support-warning" id="supportWarning" style="display:none;">
+        This feature needs Chrome or Edge on desktop — the browser you're using doesn't support local folder access. Try opening this page in Chrome or Edge.
+      </div>
+    </div>
+
+    <div id="vaultWrap" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1>Pets</h1>
+          <p>Expenses, vaccination schedules, and checkup dates for your pets — up to two profiles.</p>
+        </div>
+        <div class="actions-row">
+          <div class="folder-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
+            <span>Connected: <strong id="folderName">—</strong></span>
+          </div>
+          <button class="btn btn-ghost" id="changeFolderBtn">Change Folder</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card count">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="15" r="2"/><path d="M9 10c-2.2 0-4 2-4 4.5S6.5 19 9 19c1.3 0 2-1 3-1s1.7 1 3 1c2.5 0 4-2 4-4.5S15.2 10 13 10c-1 0-1.5.5-2 .5s-1-.5-2-.5Z"/></svg></div>
+          <div class="label">Pets</div>
+          <div class="value mono" id="statCount">0 / 2</div>
+          <div class="sub">profiles added</div>
+        </div>
+        <div class="stat-card expenses">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="label">Total Spent</div>
+          <div class="value mono" id="statExpenses">R0.00</div>
+          <div class="sub">across all pets</div>
+        </div>
+        <div class="stat-card vaccine">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 3 21 5M9 13l-5.5 5.5a1.5 1.5 0 0 0 2 2L11 15M13 5l6 6M11 7l6 6M8 10l6 6"/></svg></div>
+          <div class="label">Next Vaccine</div>
+          <div class="value" id="statVaccine" style="font-size:16px;">—</div>
+          <div class="sub" id="statVaccineSub">Nothing scheduled</div>
+        </div>
+        <div class="stat-card checkup">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg></div>
+          <div class="label">Next Checkup</div>
+          <div class="value" id="statCheckup" style="font-size:16px;">—</div>
+          <div class="sub" id="statCheckupSub">Nothing scheduled</div>
+        </div>
+      </div>
+
+      <div class="pet-slots" id="petSlots"></div>
+
+      <footer class="note">Pet profiles, expenses, and documents are stored in your connected folder.</footer>
+    </div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle">Add Pet</h2>
+    <button class="drawer-close" id="drawerClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <input type="hidden" id="editId">
+
+    <div class="avatar-edit">
+      <div class="avatar-preview" id="avatarPreview">?</div>
+      <div class="avatar-edit-actions">
+        <label class="btn btn-ghost" for="avatarInput" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          Upload Photo
+        </label>
+        <input type="file" id="avatarInput" accept="image/*">
+        <button class="btn btn-ghost" id="removeAvatarBtn" style="display:none;">Remove Photo</button>
+      </div>
+    </div>
+
+    <div class="section-label">Profile</div>
+    <div class="field">
+      <label for="fName">Name</label>
+      <input type="text" id="fName" placeholder="e.g. Bella">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="fSpecies">Species</label>
+        <select id="fSpecies">
+          <option>Dog</option>
+          <option>Cat</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fBreed">Breed</label>
+        <input type="text" id="fBreed" placeholder="e.g. Border Collie">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="fDob">Date of birth</label>
+        <input type="date" id="fDob">
+      </div>
+      <div class="field">
+        <label for="fMicrochip">Microchip / registration no.</label>
+        <input type="text" id="fMicrochip" placeholder="Optional">
+      </div>
+    </div>
+    <div class="field">
+      <label for="fNotes">Notes</label>
+      <textarea id="fNotes" placeholder="Allergies, diet, temperament, anything worth remembering…"></textarea>
+    </div>
+
+    <div id="extraSections" style="display:none;">
+      <div class="section-block">
+        <div class="section-block-header"><div class="section-label">Vet &amp; Checkups</div></div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fVetName">Vet / clinic name</label>
+            <input type="text" id="fVetName" placeholder="e.g. Paw &amp; Claw Vet Clinic">
+          </div>
+          <div class="field">
+            <label for="fVetContact">Vet contact number</label>
+            <input type="text" id="fVetContact" placeholder="e.g. 031 123 4567">
+          </div>
+        </div>
+        <div class="field">
+          <label for="fNextCheckup">Next checkup date</label>
+          <input type="date" id="fNextCheckup">
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-block-header"><div class="section-label">Vaccinations</div></div>
+        <div class="mini-list" id="vaccineList"></div>
+        <div class="add-row-card" style="margin-top:10px;">
+          <div class="field-row three">
+            <div class="field"><label>Vaccine</label><input type="text" id="vVaccineName" placeholder="e.g. Rabies"></div>
+            <div class="field"><label>Date given</label><input type="date" id="vDateGiven"></div>
+            <div class="field"><label>Next due</label><input type="date" id="vNextDue"></div>
+          </div>
+          <button type="button" class="add-row-btn" id="addVaccineBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add Vaccination
+          </button>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-block-header">
+          <div class="section-label">Expenses</div>
+        </div>
+        <div class="expense-total">
+          <span>Total logged</span>
+          <strong id="expenseTotal">R0.00</strong>
+        </div>
+        <div class="mini-list" id="expenseList"></div>
+        <div class="add-row-card" style="margin-top:10px;">
+          <div class="field-row">
+            <div class="field"><label>Description</label><input type="text" id="eDesc" placeholder="e.g. Flea treatment"></div>
+            <div class="field"><label>Category</label>
+              <select id="eCategory">
+                <option>Food</option>
+                <option>Vet / Medical</option>
+                <option>Grooming</option>
+                <option>Medication</option>
+                <option>Toys / Accessories</option>
+                <option>Boarding / Daycare</option>
+                <option>Insurance</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Amount (R)</label><input type="number" id="eAmount" step="0.01" placeholder="0.00"></div>
+            <div class="field"><label>Date</label><input type="date" id="eDate"></div>
+          </div>
+          <button type="button" class="add-row-btn" id="addExpenseBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add Expense
+          </button>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-block-header"><div class="section-label">Documents</div></div>
+        <div class="mini-dropzone" id="petDropzone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <p>Drag files here, or <span class="browse" id="petBrowseLink">browse</span></p>
+          <span>Vet records, insurance papers, and more</span>
+          <input type="file" id="petFileInput" multiple>
+        </div>
+        <div class="mini-list" id="petDocList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    <div class="save-hint" id="newPetHint">Save this pet first to add vet details, vaccinations, expenses, and documents.</div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-ghost danger-ghost" id="deletePetBtn" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+    </button>
+    <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+    <button class="btn btn-primary" id="saveBtn">Save Pet</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+  <span id="toastText">Saved</span>
+</div>
+
+<script>
+(function(){
+  const el = (id) => document.getElementById(id);
+  const MANIFEST_NAME = 'pets.json';
+  const PETS_DIR = 'pets';
+  const MAX_PETS = 2;
+  const IDB_NAME = 'familyLedgerHandles';
+  const IDB_KEY = 'petsFolder';
+
+  let dirHandle = null;
+  let pets = [];
+  let editingId = null;
+  let currentPetDir = null;
+  let docThumbs = {};
+  let avatarThumbs = {};
+
+  function idbOpen(){
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbGet(key){
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbSet(key, value){
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  function showToast(msg){
+    const toast = el('toast');
+    el('toastText').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function currency(n){
+    return 'R' + Number(n||0).toLocaleString('en-ZA', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function formatDate(d){
+    if(!d) return '—';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-ZA', {day:'2-digit', month:'short', year:'numeric'});
+  }
+  function formatBytes(bytes){
+    if(!bytes) return '0 KB';
+    const kb = bytes / 1024;
+    if(kb < 1024) return kb.toFixed(0) + ' KB';
+    return (kb/1024).toFixed(1) + ' MB';
+  }
+  function initials(name){
+    return (name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('') || '?';
+  }
+  function sanitizeFolderName(name, id){
+    const clean = (name||'').trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g,'').toLowerCase();
+    return `${clean || 'pet'}_${id.slice(0,8)}`;
+  }
+  function isOverdue(dateStr){
+    if(!dateStr) return false;
+    return new Date(dateStr + 'T00:00:00') < new Date(new Date().toDateString());
+  }
+
+  if(!('showDirectoryPicker' in window)){
+    el('supportWarning').style.display = 'block';
+    el('connectBtn').disabled = true;
+  }
+
+  async function readManifest(){
+    try{
+      const fh = await dirHandle.getFileHandle(MANIFEST_NAME);
+      const file = await fh.getFile();
+      return JSON.parse(await file.text());
+    }catch(e){ return null; }
+  }
+  async function writeManifest(){
+    const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
+    const writable = await fh.createWritable();
+    await writable.write(JSON.stringify(pets, null, 2));
+    await writable.close();
+  }
+
+  async function connectFolder(){
+    try{
+      dirHandle = await window.showDirectoryPicker();
+      await idbSet(IDB_KEY, dirHandle);
+      await afterConnect();
+    }catch(e){ /* cancelled */ }
+  }
+  async function afterConnect(){
+    el('connectWrap').style.display = 'none';
+    el('vaultWrap').style.display = 'block';
+    el('folderName').textContent = dirHandle.name;
+    const existing = await readManifest();
+    pets = existing === null ? [] : existing;
+    if(existing === null) await writeManifest();
+    await buildAvatarThumbs();
+    renderSlots();
+  }
+  async function tryAutoReconnect(){
+    let stored;
+    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
+    if(!stored) return;
+    try{
+      const perm = await stored.queryPermission({mode:'readwrite'});
+      if(perm === 'granted'){
+        dirHandle = stored;
+        await afterConnect();
+      } else {
+        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
+        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue.`;
+        el('connectBtn').textContent = 'Reconnect Folder';
+        el('connectBtn').onclick = async () => {
+          const p = await stored.requestPermission({mode:'readwrite'});
+          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
+        };
+      }
+    }catch(e){ /* fall back to normal connect */ }
+  }
+
+  el('connectBtn').addEventListener('click', connectFolder);
+  el('changeFolderBtn').addEventListener('click', () => {
+    el('vaultWrap').style.display = 'none';
+    el('connectWrap').style.display = 'block';
+    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
+    el('connectWrap').querySelector('p').textContent = 'Pick a folder on this PC — pet profiles, expenses, and documents will be saved there. You can reuse the same folder as your other modules, or choose a new one.';
+    el('connectBtn').textContent = 'Choose Folder';
+    el('connectBtn').onclick = connectFolder;
+  });
+
+  async function getPetDir(pet, create){
+    const root = await dirHandle.getDirectoryHandle(PETS_DIR, {create:true});
+    const folderName = pet.folderName || sanitizeFolderName(pet.name, pet.id);
+    return root.getDirectoryHandle(folderName, {create: !!create});
+  }
+
+  async function buildAvatarThumbs(){
+    Object.values(avatarThumbs).forEach(u => URL.revokeObjectURL(u));
+    avatarThumbs = {};
+    for(const p of pets){
+      if(p.avatarName){
+        try{
+          const dir = await getPetDir(p, true);
+          const fh = await dir.getFileHandle(p.avatarName);
+          const file = await fh.getFile();
+          avatarThumbs[p.id] = URL.createObjectURL(file);
+        }catch(e){ /* missing */ }
+      }
+    }
+  }
+
+  function nextDueAcrossPets(field){
+    let soonest = null;
+    let ownerName = '';
+    pets.forEach(p => {
+      if(field === 'checkup'){
+        if(p.nextCheckup && (!soonest || p.nextCheckup < soonest)){ soonest = p.nextCheckup; ownerName = p.name; }
+      } else {
+        (p.vaccinations||[]).forEach(v => {
+          if(v.nextDue && (!soonest || v.nextDue < soonest)){ soonest = v.nextDue; ownerName = `${p.name} — ${v.name}`; }
+        });
+      }
+    });
+    return soonest ? {date: soonest, label: ownerName} : null;
+  }
+
+  function computeStats(){
+    el('statCount').textContent = `${pets.length} / ${MAX_PETS}`;
+    const totalSpent = pets.reduce((a,p) => a + (p.expenses||[]).reduce((x,e) => x + Number(e.amount||0), 0), 0);
+    el('statExpenses').textContent = currency(totalSpent);
+
+    const nextVaccine = nextDueAcrossPets('vaccine');
+    if(nextVaccine){
+      el('statVaccine').textContent = formatDate(nextVaccine.date);
+      el('statVaccineSub').textContent = nextVaccine.label;
+    } else {
+      el('statVaccine').textContent = '—';
+      el('statVaccineSub').textContent = 'Nothing scheduled';
+    }
+
+    const nextCheckup = nextDueAcrossPets('checkup');
+    if(nextCheckup){
+      el('statCheckup').textContent = formatDate(nextCheckup.date);
+      el('statCheckupSub').textContent = nextCheckup.label;
+    } else {
+      el('statCheckup').textContent = '—';
+      el('statCheckupSub').textContent = 'Nothing scheduled';
+    }
+  }
+
+  function renderSlots(){
+    computeStats();
+    const wrap = el('petSlots');
+    const slots = [];
+    for(let i = 0; i < MAX_PETS; i++){
+      const pet = pets[i];
+      if(pet){
+        const upcomingVaccine = (pet.vaccinations||[]).slice().sort((a,b) => (a.nextDue||'').localeCompare(b.nextDue||''))[0];
+        slots.push(`
+          <div class="pet-slot" data-open="${pet.id}">
+            <div class="pet-slot-header">
+              <div class="pet-avatar">${avatarThumbs[pet.id] ? `<img src="${avatarThumbs[pet.id]}" alt="">` : escapeHtml(initials(pet.name))}</div>
+              <div>
+                <h3>${escapeHtml(pet.name || 'Unnamed')}</h3>
+                <div class="breed">${escapeHtml(pet.species || '')}${pet.breed ? ' · ' + escapeHtml(pet.breed) : ''}</div>
+              </div>
+            </div>
+            <div class="pet-slot-facts">
+              <div class="fact ${pet.nextCheckup && isOverdue(pet.nextCheckup) ? 'warn' : ''}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg>
+                Next checkup: ${pet.nextCheckup ? formatDate(pet.nextCheckup) : 'Not scheduled'}
+              </div>
+              <div class="fact ${upcomingVaccine && upcomingVaccine.nextDue && isOverdue(upcomingVaccine.nextDue) ? 'warn' : ''}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 3 21 5M9 13l-5.5 5.5a1.5 1.5 0 0 0 2 2L11 15M13 5l6 6M11 7l6 6M8 10l6 6"/></svg>
+                Next vaccine: ${upcomingVaccine ? `${escapeHtml(upcomingVaccine.name)} — ${formatDate(upcomingVaccine.nextDue)}` : 'None scheduled'}
+              </div>
+              <div class="fact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Total spent: ${currency((pet.expenses||[]).reduce((a,e) => a + Number(e.amount||0), 0))}
+              </div>
+            </div>
+          </div>
+        `);
+      } else {
+        slots.push(`
+          <div class="pet-slot empty" data-add="1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Add Pet</span>
+          </div>
+        `);
+      }
+    }
+    wrap.innerHTML = slots.join('');
+    wrap.querySelectorAll('[data-open]').forEach(node => {
+      node.addEventListener('click', () => {
+        const pet = pets.find(p => p.id === node.dataset.open);
+        if(pet) openDrawer(pet);
+      });
+    });
+    wrap.querySelectorAll('[data-add]').forEach(node => {
+      node.addEventListener('click', () => openDrawer(null));
+    });
+  }
+
+  async function openDrawer(pet){
+    editingId = pet ? pet.id : null;
+    el('drawerTitle').textContent = pet ? 'Edit Pet' : 'Add Pet';
+    el('editId').value = pet ? pet.id : '';
+    el('fName').value = pet ? pet.name || '' : '';
+    el('fSpecies').value = pet ? (pet.species || 'Dog') : 'Dog';
+    el('fBreed').value = pet ? (pet.breed || '') : '';
+    el('fDob').value = pet ? (pet.dob || '') : '';
+    el('fMicrochip').value = pet ? (pet.microchip || '') : '';
+    el('fNotes').value = pet ? (pet.notes || '') : '';
+    el('fVetName').value = pet ? (pet.vetName || '') : '';
+    el('fVetContact').value = pet ? (pet.vetContact || '') : '';
+    el('fNextCheckup').value = pet ? (pet.nextCheckup || '') : '';
+    el('deletePetBtn').style.display = pet ? 'flex' : 'none';
+
+    renderAvatarPreview(pet);
+
+    if(pet){
+      el('extraSections').style.display = 'block';
+      el('newPetHint').style.display = 'none';
+      currentPetDir = await getPetDir(pet, true);
+      renderVaccineList(pet);
+      renderExpenseList(pet);
+      await renderPetDocs(pet);
+    } else {
+      el('extraSections').style.display = 'none';
+      el('newPetHint').style.display = 'block';
+      currentPetDir = null;
+    }
+
+    el('drawer').classList.add('show');
+    el('overlay').classList.add('show');
+    setTimeout(() => el('fName').focus(), 200);
+  }
+  function closeDrawer(){
+    el('drawer').classList.remove('show');
+    el('overlay').classList.remove('show');
+    editingId = null;
+    currentPetDir = null;
+  }
+  function renderAvatarPreview(pet){
+    const preview = el('avatarPreview');
+    const removeBtn = el('removeAvatarBtn');
+    if(pet && pet.avatarName && avatarThumbs[pet.id]){
+      preview.innerHTML = `<img src="${avatarThumbs[pet.id]}" alt="">`;
+      removeBtn.style.display = 'inline-flex';
+    } else {
+      preview.textContent = initials((pet && pet.name) || el('fName').value || '?');
+      removeBtn.style.display = 'none';
+    }
+  }
+
+  // ---- Vaccinations ----
+  function renderVaccineList(pet){
+    const list = el('vaccineList');
+    const items = (pet.vaccinations||[]).slice().sort((a,b) => (a.nextDue||'').localeCompare(b.nextDue||''));
+    if(items.length === 0){
+      list.innerHTML = '<div class="no-items">No vaccinations logged yet</div>';
+      return;
+    }
+    list.innerHTML = items.map(v => `
+      <div class="mini-row ${v.nextDue && isOverdue(v.nextDue) ? 'overdue' : ''}">
+        <span class="mtitle">${escapeHtml(v.name)}</span>
+        <span class="msub">Given ${formatDate(v.dateGiven)} · Next ${formatDate(v.nextDue)}</span>
+        <button class="icon-btn danger" data-del-vaccine="${v.id}" aria-label="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+    `).join('');
+  }
+  el('vaccineList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-del-vaccine]');
+    if(!btn) return;
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet) return;
+    pet.vaccinations = (pet.vaccinations||[]).filter(v => v.id !== btn.dataset.delVaccine);
+    await writeManifest();
+    renderVaccineList(pet);
+    renderSlots();
+  });
+  el('addVaccineBtn').addEventListener('click', async () => {
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet) return;
+    const name = el('vVaccineName').value.trim();
+    if(!name){ el('vVaccineName').focus(); return; }
+    pet.vaccinations = pet.vaccinations || [];
+    pet.vaccinations.push({
+      id: crypto.randomUUID(), name,
+      dateGiven: el('vDateGiven').value, nextDue: el('vNextDue').value
+    });
+    el('vVaccineName').value = ''; el('vDateGiven').value = ''; el('vNextDue').value = '';
+    await writeManifest();
+    renderVaccineList(pet);
+    renderSlots();
+    showToast('Vaccination added');
+  });
+
+  // ---- Expenses ----
+  function renderExpenseList(pet){
+    const list = el('expenseList');
+    const items = (pet.expenses||[]).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    const total = items.reduce((a,e) => a + Number(e.amount||0), 0);
+    el('expenseTotal').textContent = currency(total);
+    if(items.length === 0){
+      list.innerHTML = '<div class="no-items">No expenses logged yet</div>';
+      return;
+    }
+    list.innerHTML = items.map(e => `
+      <div class="mini-row">
+        <span class="mtitle">${escapeHtml(e.description)} <span style="color:var(--text-muted); font-weight:400;">· ${escapeHtml(e.category)}</span></span>
+        <span class="msub">${currency(e.amount)} · ${formatDate(e.date)}</span>
+        <button class="icon-btn danger" data-del-expense="${e.id}" aria-label="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+    `).join('');
+  }
+  el('expenseList').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-del-expense]');
+    if(!btn) return;
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet) return;
+    pet.expenses = (pet.expenses||[]).filter(x => x.id !== btn.dataset.delExpense);
+    await writeManifest();
+    renderExpenseList(pet);
+    renderSlots();
+  });
+  el('addExpenseBtn').addEventListener('click', async () => {
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet) return;
+    const description = el('eDesc').value.trim();
+    const amount = parseFloat(el('eAmount').value);
+    if(!description){ el('eDesc').focus(); return; }
+    if(isNaN(amount) || amount <= 0){ el('eAmount').focus(); return; }
+    pet.expenses = pet.expenses || [];
+    pet.expenses.push({
+      id: crypto.randomUUID(), description, amount,
+      category: el('eCategory').value,
+      date: el('eDate').value || new Date().toISOString().slice(0,10)
+    });
+    el('eDesc').value = ''; el('eAmount').value = ''; el('eDate').value = '';
+    await writeManifest();
+    renderExpenseList(pet);
+    renderSlots();
+    showToast('Expense added');
+  });
+
+  // ---- Documents ----
+  async function renderPetDocs(pet){
+    const list = el('petDocList');
+    const docs = pet.documents || [];
+    Object.values(docThumbs).forEach(u => URL.revokeObjectURL(u));
+    docThumbs = {};
+    if(docs.length === 0){
+      list.innerHTML = '<div class="no-items">No documents yet</div>';
+      return;
+    }
+    for(const d of docs){
+      if(d.isImage){
+        try{
+          const fh = await currentPetDir.getFileHandle(d.storedName);
+          const file = await fh.getFile();
+          docThumbs[d.id] = URL.createObjectURL(file);
+        }catch(e){ /* missing */ }
+      }
+    }
+    list.innerHTML = docs.map(d => `
+      <div class="doc-row">
+        <div class="dicon">
+          ${d.isImage && docThumbs[d.id]
+            ? `<img src="${docThumbs[d.id]}" alt="">`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
+        </div>
+        <div class="dname" title="${escapeHtml(d.name)}">${escapeHtml(d.name)}</div>
+        <div class="dmeta">${formatBytes(d.size)}</div>
+        <div class="drow-actions">
+          <button class="icon-btn" data-ddownload="${d.id}" aria-label="Download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </button>
+          <button class="icon-btn danger" data-ddel="${d.id}" aria-label="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+  el('petDocList').addEventListener('click', async (e) => {
+    const dl = e.target.closest('[data-ddownload]');
+    const delBtn = e.target.closest('[data-ddel]');
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet) return;
+    if(dl){
+      const d = (pet.documents||[]).find(x => x.id === dl.dataset.ddownload);
+      if(!d) return;
+      try{
+        const fh = await currentPetDir.getFileHandle(d.storedName);
+        const file = await fh.getFile();
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url; a.download = d.name; a.click();
+        URL.revokeObjectURL(url);
+      }catch(err){ showToast('Could not find that file'); }
+    }
+    if(delBtn){
+      const id = delBtn.dataset.ddel;
+      const d = (pet.documents||[]).find(x => x.id === id);
+      if(!d) return;
+      if(!confirm(`Delete "${d.name}"? This can't be undone.`)) return;
+      try{ await currentPetDir.removeEntry(d.storedName); }catch(err){ /* already gone */ }
+      pet.documents = (pet.documents||[]).filter(x => x.id !== id);
+      await writeManifest();
+      await renderPetDocs(pet);
+      showToast('Document deleted');
+    }
+  });
+
+  const petDropzone = el('petDropzone');
+  const petFileInput = el('petFileInput');
+  el('petBrowseLink').addEventListener('click', () => petFileInput.click());
+  petDropzone.addEventListener('dragover', (e) => { e.preventDefault(); petDropzone.classList.add('drag'); });
+  petDropzone.addEventListener('dragleave', () => petDropzone.classList.remove('drag'));
+  petDropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    petDropzone.classList.remove('drag');
+    handlePetFiles(e.dataTransfer.files);
+  });
+  petFileInput.addEventListener('change', () => handlePetFiles(petFileInput.files));
+
+  async function handlePetFiles(fileList){
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet || !currentPetDir) return;
+    for(const file of Array.from(fileList)){
+      if(file.size > 50 * 1024 * 1024){ showToast(`${file.name} is over 50MB — skipped`); continue; }
+      const storedName = `${Date.now()}_${file.name}`;
+      try{
+        const fh = await currentPetDir.getFileHandle(storedName, {create:true});
+        const writable = await fh.createWritable();
+        await writable.write(file);
+        await writable.close();
+        pet.documents = pet.documents || [];
+        pet.documents.push({
+          id: crypto.randomUUID(), name: file.name, storedName,
+          size: file.size, isImage: file.type.startsWith('image/'),
+          addedAt: new Date().toISOString()
+        });
+        showToast(`${file.name} saved`);
+      }catch(err){ showToast(`Could not save ${file.name}`); }
+    }
+    petFileInput.value = '';
+    await writeManifest();
+    await renderPetDocs(pet);
+  }
+
+  // ---- Avatar ----
+  el('avatarInput').addEventListener('change', async () => {
+    const file = el('avatarInput').files[0];
+    if(!file) return;
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet || !currentPetDir){
+      showToast('Save this pet first to add a photo');
+      el('avatarInput').value = '';
+      return;
+    }
+    if(!file.type.startsWith('image/')){
+      showToast('Please choose an image file');
+      el('avatarInput').value = '';
+      return;
+    }
+    try{
+      if(pet.avatarName){
+        try{ await currentPetDir.removeEntry(pet.avatarName); }catch(e){ /* already gone */ }
+      }
+      const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+      const storedName = `avatar_${Date.now()}.${ext}`;
+      const fh = await currentPetDir.getFileHandle(storedName, {create:true});
+      const writable = await fh.createWritable();
+      await writable.write(file);
+      await writable.close();
+      pet.avatarName = storedName;
+      await writeManifest();
+      await buildAvatarThumbs();
+      renderAvatarPreview(pet);
+      renderSlots();
+      showToast('Photo updated');
+    }catch(err){
+      showToast('Could not save photo');
+    }
+    el('avatarInput').value = '';
+  });
+  el('removeAvatarBtn').addEventListener('click', async () => {
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet || !currentPetDir || !pet.avatarName) return;
+    if(!confirm('Remove this photo?')) return;
+    try{ await currentPetDir.removeEntry(pet.avatarName); }catch(e){ /* already gone */ }
+    delete pet.avatarName;
+    await writeManifest();
+    await buildAvatarThumbs();
+    renderAvatarPreview(pet);
+    renderSlots();
+    showToast('Photo removed');
+  });
+
+  // ---- Save / delete pet ----
+  el('saveBtn').addEventListener('click', async () => {
+    const name = el('fName').value.trim();
+    if(!name){ el('fName').focus(); return; }
+    if(!editingId && pets.length >= MAX_PETS){
+      showToast(`Only ${MAX_PETS} pet profiles are supported`);
+      return;
+    }
+    const data = {
+      name,
+      species: el('fSpecies').value,
+      breed: el('fBreed').value.trim(),
+      dob: el('fDob').value,
+      microchip: el('fMicrochip').value.trim(),
+      notes: el('fNotes').value.trim(),
+      vetName: el('fVetName').value.trim(),
+      vetContact: el('fVetContact').value.trim(),
+      nextCheckup: el('fNextCheckup').value
+    };
+    if(editingId){
+      const idx = pets.findIndex(p => p.id === editingId);
+      pets[idx] = {...pets[idx], ...data};
+      await writeManifest();
+      showToast('Pet updated');
+      renderSlots();
+      closeDrawer();
+    } else {
+      const id = crypto.randomUUID();
+      const folderName = sanitizeFolderName(name, id);
+      const newPet = {id, folderName, vaccinations: [], expenses: [], documents: [], ...data};
+      pets.push(newPet);
+      await writeManifest();
+      showToast('Pet added');
+      renderSlots();
+      await openDrawer(newPet);
+    }
+  });
+
+  el('deletePetBtn').addEventListener('click', async () => {
+    const pet = pets.find(p => p.id === editingId);
+    if(!pet) return;
+    if(!confirm(`Remove "${pet.name}" and all their expenses, vaccinations, and documents? This can't be undone.`)) return;
+    try{
+      const root = await dirHandle.getDirectoryHandle(PETS_DIR, {create:true});
+      await root.removeEntry(pet.folderName, {recursive:true});
+    }catch(err){ /* folder may not exist */ }
+    if(avatarThumbs[pet.id]){ URL.revokeObjectURL(avatarThumbs[pet.id]); delete avatarThumbs[pet.id]; }
+    pets = pets.filter(p => p.id !== editingId);
+    await writeManifest();
+    renderSlots();
+    closeDrawer();
+    showToast('Pet removed');
+  });
+
+  el('drawerClose').addEventListener('click', closeDrawer);
+  el('cancelBtn').addEventListener('click', closeDrawer);
+  el('overlay').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
+
+  tryAutoReconnect();
+})();
+</script>
+</body>
+</html>
 
