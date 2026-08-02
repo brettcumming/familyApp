@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Household Manager — Documents</title>
 <style>body{visibility:hidden;}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-client.js"></script>
 <script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -130,24 +132,6 @@
   .btn-ghost:hover{color:var(--text-primary); border-color:rgba(255,255,255,0.18); background:var(--panel-alt);}
   .actions-row{display:flex; gap:10px; flex-shrink:0;}
 
-  .connect-wrap{
-    max-width:460px; margin:70px auto; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
-    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:34px;
-    box-shadow:var(--shadow-soft); text-align:center;
-  }
-  .connect-wrap .icon-circle{
-    width:52px; height:52px; border-radius:14px; background:var(--accent-soft); color:var(--accent-hover);
-    display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
-  }
-  .connect-wrap .icon-circle svg{width:24px; height:24px;}
-  .connect-wrap h2{margin:0 0 8px; font-size:19px;}
-  .connect-wrap p{margin:0 0 22px; color:var(--text-secondary); font-size:13.5px; line-height:1.55;}
-  .connect-wrap .btn-primary{margin:0 auto;}
-  .support-warning{
-    background:var(--warning-soft); border:1px solid rgba(240,184,76,0.3); color:var(--warning);
-    padding:12px 16px; border-radius:10px; font-size:12.5px; margin-top:18px; text-align:left; line-height:1.5;
-  }
-
   .stats{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:14px;}
   .stat-card{
     background:linear-gradient(160deg, var(--panel), var(--panel-alt));
@@ -242,12 +226,6 @@
   }
   .toast.show{transform:translateY(0); opacity:1;}
   .toast svg{width:16px; height:16px; color:var(--success); flex-shrink:0;}
-
-  .folder-badge{
-    display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted);
-  }
-  .folder-badge svg{width:14px; height:14px; color:var(--text-secondary);}
-  .folder-badge strong{color:var(--text-secondary); font-weight:600;}
 
   footer.note{margin-top:30px; color:var(--text-muted); font-size:12px; text-align:center;}
 
@@ -350,35 +328,11 @@
 
   <main class="main">
 
-    <!-- Shown until a folder is connected -->
-    <div class="connect-wrap" id="connectWrap">
-      <div class="icon-circle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
-      </div>
-      <h2>Connect a folder</h2>
-      <p>Pick a folder on this PC — your documents and a small index file will be stored there directly. Nothing leaves this device.</p>
-      <button class="btn btn-primary" id="connectBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
-        Choose Folder
-      </button>
-      <div class="support-warning" id="supportWarning" style="display:none;">
-        This feature needs Chrome or Edge on desktop — the browser you're using doesn't support local folder access. Try opening this page in Chrome or Edge.
-      </div>
-    </div>
-
-    <!-- Shown once a folder is connected -->
-    <div id="vaultWrap" style="display:none;">
+    <div id="vaultWrap">
       <div class="topbar">
         <div>
           <h1>Documents</h1>
           <p>Documents.</p>
-        </div>
-        <div class="actions-row">
-          <div class="folder-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
-            <span>Connected: <strong id="folderName">—</strong></span>
-          </div>
-          <button class="btn btn-ghost" id="changeFolderBtn">Change Folder</button>
         </div>
       </div>
 
@@ -405,7 +359,7 @@
           <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div>
           <div class="label">Total Size</div>
           <div class="value mono" id="statSize">0 MB</div>
-          <div class="sub">stored in folder</div>
+          <div class="sub">stored</div>
         </div>
       </div>
 
@@ -414,7 +368,7 @@
       <div class="dropzone" id="dropzone">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
         <p>Drag files here, or <span class="browse" id="browseLink">browse to upload</span></p>
-        <span>Saved straight into your connected folder</span>
+        <span>Saved to your family's shared storage</span>
         <input type="file" id="fileInput" multiple>
         <div class="field" style="max-width:220px; margin:16px auto 0;">
           <select id="uploadCategory">
@@ -462,41 +416,10 @@
 <script>
 (function(){
   const el = (id) => document.getElementById(id);
-  const MANIFEST_NAME = 'manifest.json';
-  const IDB_NAME = 'familyLedgerHandles';
-  const IDB_KEY = 'documentsFolder';
+  const BUCKET = 'documents';
 
-  let dirHandle = null;
-  let manifest = [];
+  let docs = [];
   let thumbUrls = {};
-
-  // ---- tiny IndexedDB helper to remember the folder handle between visits ----
-  function idbOpen(){
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = () => req.result.createObjectStore('handles');
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbGet(key){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbSet(key, value){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
 
   function showToast(msg){
     const toast = el('toast');
@@ -519,105 +442,33 @@
     return (kb/1024).toFixed(1) + ' MB';
   }
 
-  // ---- Browser support check ----
-  if(!('showDirectoryPicker' in window)){
-    el('supportWarning').style.display = 'block';
-    el('connectBtn').disabled = true;
-  }
-
-  // ---- Manifest read/write ----
-  async function readManifest(){
-    try{
-      const fileHandle = await dirHandle.getFileHandle(MANIFEST_NAME);
-      const file = await fileHandle.getFile();
-      const text = await file.text();
-      return JSON.parse(text);
-    }catch(e){
-      return [];
-    }
-  }
-  async function writeManifest(){
-    const fileHandle = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
-    const writable = await fileHandle.createWritable();
-    await writable.write(JSON.stringify(manifest, null, 2));
-    await writable.close();
-  }
-
-  // ---- Connect / reconnect folder ----
-  async function connectFolder(){
-    try{
-      dirHandle = await window.showDirectoryPicker();
-      await idbSet(IDB_KEY, dirHandle);
-      await afterConnect();
-    }catch(e){
-      // user cancelled the picker — no-op
-    }
-  }
-
-  async function afterConnect(){
-    el('connectWrap').style.display = 'none';
-    el('vaultWrap').style.display = 'block';
-    el('folderName').textContent = dirHandle.name;
-    manifest = await readManifest();
+  async function loadDocuments(){
+    const { data, error } = await supabaseClient
+      .from('documents')
+      .select('*')
+      .order('added_at', { ascending: false });
+    if(error){ showToast('Error loading documents'); console.error(error); return; }
+    docs = data;
     await buildThumbs();
     render();
   }
 
-  async function tryAutoReconnect(){
-    let stored;
-    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
-    if(!stored) return;
-    try{
-      const perm = await stored.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){
-        dirHandle = stored;
-        await afterConnect();
-      } else {
-        // needs a user gesture to re-request — show a reconnect prompt instead of auto-connecting
-        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
-        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue where you left off.`;
-        el('connectBtn').textContent = 'Reconnect Folder';
-        el('connectBtn').onclick = async () => {
-          const p = await stored.requestPermission({mode:'readwrite'});
-          if(p === 'granted'){
-            dirHandle = stored;
-            await afterConnect();
-          }
-        };
-      }
-    }catch(e){ /* stored handle invalid, fall back to normal connect */ }
-  }
-
-  el('connectBtn').addEventListener('click', connectFolder);
-  el('changeFolderBtn').addEventListener('click', () => {
-    el('vaultWrap').style.display = 'none';
-    el('connectWrap').style.display = 'block';
-    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
-    el('connectWrap').querySelector('p').textContent = 'Pick a folder on this PC — your documents and a small index file will be stored there directly. Nothing leaves this device.';
-    el('connectBtn').textContent = 'Choose Folder';
-    el('connectBtn').onclick = connectFolder;
-  });
-
-  // ---- Thumbnails for images ----
   async function buildThumbs(){
-    Object.values(thumbUrls).forEach(u => URL.revokeObjectURL(u));
     thumbUrls = {};
-    for(const d of manifest){
-      if(d.isImage){
-        try{
-          const fh = await dirHandle.getFileHandle(d.storedName);
-          const file = await fh.getFile();
-          thumbUrls[d.id] = URL.createObjectURL(file);
-        }catch(e){ /* file missing */ }
-      }
-    }
+    const imageDocs = docs.filter(d => d.is_image);
+    await Promise.all(imageDocs.map(async (d) => {
+      const { data, error } = await supabaseClient.storage
+        .from(BUCKET)
+        .createSignedUrl(d.storage_path, 3600);
+      if(!error) thumbUrls[d.id] = data.signedUrl;
+    }));
   }
 
   function computeStats(){
-    const totalSize = manifest.reduce((a,d) => a + (d.size||0), 0);
-    el('statTotal').textContent = manifest.length;
-    el('statPop').textContent = manifest.filter(d => d.category === 'Proof of Payment').length;
-    el('statId').textContent = manifest.filter(d => d.category === 'ID & Personal').length;
+    const totalSize = docs.reduce((a,d) => a + (d.size||0), 0);
+    el('statTotal').textContent = docs.length;
+    el('statPop').textContent = docs.filter(d => d.category === 'Proof of Payment').length;
+    el('statId').textContent = docs.filter(d => d.category === 'ID & Personal').length;
     el('statSize').textContent = formatBytes(totalSize);
   }
 
@@ -625,15 +476,15 @@
     const q = el('searchInput').value.trim().toLowerCase();
     const cat = el('categoryFilter').value;
     const sort = el('sortFilter').value;
-    let list = manifest.filter(d => {
+    let list = docs.filter(d => {
       const matchesQ = !q || d.name.toLowerCase().includes(q);
       const matchesCat = cat === 'all' || d.category === cat;
       return matchesQ && matchesCat;
     });
     list.sort((a,b) => {
       if(sort === 'name-asc') return a.name.localeCompare(b.name);
-      const ad = new Date(a.addedAt).getTime();
-      const bd = new Date(b.addedAt).getTime();
+      const ad = new Date(a.added_at).getTime();
+      const bd = new Date(b.added_at).getTime();
       return sort === 'date-asc' ? ad - bd : bd - ad;
     });
     return list;
@@ -648,14 +499,14 @@
         <div class="empty-state">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
           <h3>No documents yet</h3>
-          <p>Drag a file above to add the first one to this folder.</p>
+          <p>Drag a file above to add the first one.</p>
         </div>`;
       return;
     }
     grid.innerHTML = list.map(d => `
       <div class="doc-card">
         <div class="doc-thumb">
-          ${d.isImage && thumbUrls[d.id]
+          ${d.is_image && thumbUrls[d.id]
             ? `<img src="${thumbUrls[d.id]}" alt="${escapeHtml(d.name)}">`
             : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
         </div>
@@ -665,7 +516,7 @@
             <span class="cat-pill">${escapeHtml(d.category)}</span>
             <span>${formatBytes(d.size)}</span>
             <span>·</span>
-            <span>${formatDate(d.addedAt)}</span>
+            <span>${formatDate(d.added_at)}</span>
           </div>
         </div>
         <div class="doc-footer">
@@ -686,29 +537,29 @@
     const dl = e.target.closest('[data-download]');
     const delBtn = e.target.closest('[data-del]');
     if(dl){
-      const d = manifest.find(x => x.id === dl.dataset.download);
+      const d = docs.find(x => x.id === dl.dataset.download);
       if(!d) return;
-      try{
-        const fh = await dirHandle.getFileHandle(d.storedName);
-        const file = await fh.getFile();
-        const url = URL.createObjectURL(file);
-        const a = document.createElement('a');
-        a.href = url; a.download = d.name; a.click();
-        URL.revokeObjectURL(url);
-      }catch(err){ showToast('Could not find that file in the folder'); }
+      const { data, error } = await supabaseClient.storage
+        .from(BUCKET)
+        .createSignedUrl(d.storage_path, 60);
+      if(error){ showToast('Could not download that file'); return; }
+      const a = document.createElement('a');
+      a.href = data.signedUrl; a.download = d.name; a.click();
     }
     if(delBtn){
       const id = delBtn.dataset.del;
-      const d = manifest.find(x => x.id === id);
+      const d = docs.find(x => x.id === id);
       if(!d) return;
       if(!confirm(`Delete "${d.name}"? This can't be undone.`)) return;
-      try{
-        await dirHandle.removeEntry(d.storedName);
-      }catch(err){ /* already gone from disk, still clean up the manifest */ }
-      manifest = manifest.filter(x => x.id !== id);
-      await writeManifest();
-      if(thumbUrls[id]){ URL.revokeObjectURL(thumbUrls[id]); delete thumbUrls[id]; }
-      render();
+
+      const { error: storageErr } = await supabaseClient.storage
+        .from(BUCKET).remove([d.storage_path]);
+      if(storageErr){ showToast('Could not delete file from storage'); console.error(storageErr); return; }
+
+      const { error: dbErr } = await supabaseClient.from('documents').delete().eq('id', id);
+      if(dbErr){ showToast('Could not delete document record'); return; }
+
+      await loadDocuments();
       showToast('Document deleted');
     }
   });
@@ -718,7 +569,6 @@
     el(id).addEventListener('change', render);
   });
 
-  // ---- Upload handling ----
   const dropzone = el('dropzone');
   const fileInput = el('fileInput');
   el('browseLink').addEventListener('click', () => fileInput.click());
@@ -737,8 +587,7 @@
       await saveFile(file, category);
     }
     fileInput.value = '';
-    await buildThumbs();
-    render();
+    await loadDocuments();
   }
 
   async function saveFile(file, category){
@@ -746,30 +595,25 @@
       showToast(`${file.name} is over 50MB — skipped`);
       return;
     }
-    const storedName = `${Date.now()}_${file.name}`;
-    try{
-      const fh = await dirHandle.getFileHandle(storedName, {create:true});
-      const writable = await fh.createWritable();
-      await writable.write(file);
-      await writable.close();
+    const storagePath = `${crypto.randomUUID()}_${file.name}`;
+    const { error: uploadErr } = await supabaseClient.storage
+      .from(BUCKET)
+      .upload(storagePath, file);
+    if(uploadErr){ showToast(`Could not upload ${file.name}: ${uploadErr.message}`); return; }
 
-      manifest.push({
-        id: crypto.randomUUID(),
-        name: file.name,
-        storedName,
-        category,
-        size: file.size,
-        isImage: file.type.startsWith('image/'),
-        addedAt: new Date().toISOString()
-      });
-      await writeManifest();
-      showToast(`${file.name} saved`);
-    }catch(err){
-      showToast(`Could not save ${file.name}: ${err.message}`);
-    }
+    const { error: dbErr } = await supabaseClient.from('documents').insert({
+      name: file.name,
+      storage_path: storagePath,
+      category,
+      size: file.size,
+      is_image: file.type.startsWith('image/')
+    });
+    if(dbErr){ showToast(`Uploaded but failed to save record for ${file.name}`); return; }
+
+    showToast(`${file.name} saved`);
   }
 
-  tryAutoReconnect();
+  loadDocuments();
 })();
 </script>
 </body>
