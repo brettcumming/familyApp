@@ -633,45 +633,16 @@
 <script>
 (function(){
   const el = (id) => document.getElementById(id);
-  const MANIFEST_NAME = 'pets.json';
-  const PETS_DIR = 'pets';
+  const BUCKET = 'pet-files';
   const MAX_PETS = 2;
-  const IDB_NAME = 'familyLedgerHandles';
-  const IDB_KEY = 'petsFolder';
 
-  let dirHandle = null;
   let pets = [];
   let editingId = null;
-  let currentPetDir = null;
+  let currentVaccinations = [];
+  let currentExpenses = [];
+  let currentDocuments = [];
   let docThumbs = {};
   let avatarThumbs = {};
-
-  function idbOpen(){
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbGet(key){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbSet(key, value){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
 
   function showToast(msg){
     const toast = el('toast');
@@ -699,101 +670,36 @@
   function initials(name){
     return (name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('') || '?';
   }
-  function sanitizeFolderName(name, id){
-    const clean = (name||'').trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g,'').toLowerCase();
-    return `${clean || 'pet'}_${id.slice(0,8)}`;
-  }
   function isOverdue(dateStr){
     if(!dateStr) return false;
     return new Date(dateStr + 'T00:00:00') < new Date(new Date().toDateString());
   }
 
-  if(!('showDirectoryPicker' in window)){
-    el('supportWarning').style.display = 'block';
-    el('connectBtn').disabled = true;
-  }
-
-  async function readManifest(){
-    try{
-      const fh = await dirHandle.getFileHandle(MANIFEST_NAME);
-      const file = await fh.getFile();
-      return JSON.parse(await file.text());
-    }catch(e){ return null; }
-  }
-  async function writeManifest(){
-    const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
-    const writable = await fh.createWritable();
-    await writable.write(JSON.stringify(pets, null, 2));
-    await writable.close();
-  }
-
-  async function connectFolder(){
-    try{
-      dirHandle = await window.showDirectoryPicker();
-      await idbSet(IDB_KEY, dirHandle);
-      await afterConnect();
-    }catch(e){ /* cancelled */ }
-  }
-  async function afterConnect(){
-    el('connectWrap').style.display = 'none';
-    el('vaultWrap').style.display = 'block';
-    el('folderName').textContent = dirHandle.name;
-    const existing = await readManifest();
-    pets = existing === null ? [] : existing;
-    if(existing === null) await writeManifest();
+  // ---- Loading ----
+  async function loadPets(){
+    const { data, error } = await supabaseClient
+      .from('pets')
+      .select('*, pet_vaccinations(*), pet_expenses(*)')
+      .order('created_at', { ascending: true });
+    if(error){ showToast('Error loading pets'); console.error(error); return; }
+    pets = data.map(p => ({
+      id: p.id, name: p.name, species: p.species, breed: p.breed, dob: p.dob,
+      microchip: p.microchip, notes: p.notes, vetName: p.vet_name, vetContact: p.vet_contact,
+      nextCheckup: p.next_checkup, avatarPath: p.avatar_path,
+      vaccinations: (p.pet_vaccinations || []).map(v => ({ id: v.id, name: v.name, dateGiven: v.date_given, nextDue: v.next_due })),
+      expenses: (p.pet_expenses || []).map(e => ({ id: e.id, description: e.description, category: e.category, amount: e.amount, date: e.expense_date }))
+    }));
     await buildAvatarThumbs();
     renderSlots();
   }
-  async function tryAutoReconnect(){
-    let stored;
-    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
-    if(!stored) return;
-    try{
-      const perm = await stored.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){
-        dirHandle = stored;
-        await afterConnect();
-      } else {
-        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
-        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue.`;
-        el('connectBtn').textContent = 'Reconnect Folder';
-        el('connectBtn').onclick = async () => {
-          const p = await stored.requestPermission({mode:'readwrite'});
-          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
-        };
-      }
-    }catch(e){ /* fall back to normal connect */ }
-  }
-
-  el('connectBtn').addEventListener('click', connectFolder);
-  el('changeFolderBtn').addEventListener('click', () => {
-    el('vaultWrap').style.display = 'none';
-    el('connectWrap').style.display = 'block';
-    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
-    el('connectWrap').querySelector('p').textContent = 'Pick a folder on this PC — pet profiles, expenses, and documents will be saved there. You can reuse the same folder as your other modules, or choose a new one.';
-    el('connectBtn').textContent = 'Choose Folder';
-    el('connectBtn').onclick = connectFolder;
-  });
-
-  async function getPetDir(pet, create){
-    const root = await dirHandle.getDirectoryHandle(PETS_DIR, {create:true});
-    const folderName = pet.folderName || sanitizeFolderName(pet.name, pet.id);
-    return root.getDirectoryHandle(folderName, {create: !!create});
-  }
 
   async function buildAvatarThumbs(){
-    Object.values(avatarThumbs).forEach(u => URL.revokeObjectURL(u));
     avatarThumbs = {};
-    for(const p of pets){
-      if(p.avatarName){
-        try{
-          const dir = await getPetDir(p, true);
-          const fh = await dir.getFileHandle(p.avatarName);
-          const file = await fh.getFile();
-          avatarThumbs[p.id] = URL.createObjectURL(file);
-        }catch(e){ /* missing */ }
-      }
-    }
+    const withAvatars = pets.filter(p => p.avatarPath);
+    await Promise.all(withAvatars.map(async (p) => {
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(p.avatarPath, 3600);
+      if(!error) avatarThumbs[p.id] = data.signedUrl;
+    }));
   }
 
   function nextDueAcrossPets(field){
@@ -909,14 +815,17 @@
     if(pet){
       el('extraSections').style.display = 'block';
       el('newPetHint').style.display = 'none';
-      currentPetDir = await getPetDir(pet, true);
-      renderVaccineList(pet);
-      renderExpenseList(pet);
-      await renderPetDocs(pet);
+      currentVaccinations = pet.vaccinations || [];
+      currentExpenses = pet.expenses || [];
+      renderVaccineList();
+      renderExpenseList();
+      await loadDocuments(pet.id);
     } else {
       el('extraSections').style.display = 'none';
       el('newPetHint').style.display = 'block';
-      currentPetDir = null;
+      currentVaccinations = [];
+      currentExpenses = [];
+      currentDocuments = [];
     }
 
     el('drawer').classList.add('show');
@@ -927,12 +836,11 @@
     el('drawer').classList.remove('show');
     el('overlay').classList.remove('show');
     editingId = null;
-    currentPetDir = null;
   }
   function renderAvatarPreview(pet){
     const preview = el('avatarPreview');
     const removeBtn = el('removeAvatarBtn');
-    if(pet && pet.avatarName && avatarThumbs[pet.id]){
+    if(pet && pet.avatarPath && avatarThumbs[pet.id]){
       preview.innerHTML = `<img src="${avatarThumbs[pet.id]}" alt="">`;
       removeBtn.style.display = 'inline-flex';
     } else {
@@ -942,9 +850,9 @@
   }
 
   // ---- Vaccinations ----
-  function renderVaccineList(pet){
+  function renderVaccineList(){
     const list = el('vaccineList');
-    const items = (pet.vaccinations||[]).slice().sort((a,b) => (a.nextDue||'').localeCompare(b.nextDue||''));
+    const items = currentVaccinations.slice().sort((a,b) => (a.nextDue||'').localeCompare(b.nextDue||''));
     if(items.length === 0){
       list.innerHTML = '<div class="no-items">No vaccinations logged yet</div>';
       return;
@@ -959,35 +867,35 @@
   }
   el('vaccineList').addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-del-vaccine]');
-    if(!btn) return;
-    const pet = pets.find(p => p.id === editingId);
-    if(!pet) return;
-    pet.vaccinations = (pet.vaccinations||[]).filter(v => v.id !== btn.dataset.delVaccine);
-    await writeManifest();
-    renderVaccineList(pet);
-    renderSlots();
+    if(!btn || !editingId) return;
+    const { error } = await supabaseClient.from('pet_vaccinations').delete().eq('id', btn.dataset.delVaccine);
+    if(error){ showToast('Could not remove vaccination'); console.error(error); return; }
+    currentVaccinations = currentVaccinations.filter(v => v.id !== btn.dataset.delVaccine);
+    renderVaccineList();
+    await loadPets();
   });
   el('addVaccineBtn').addEventListener('click', async () => {
-    const pet = pets.find(p => p.id === editingId);
-    if(!pet) return;
+    if(!editingId) return;
     const name = el('vVaccineName').value.trim();
     if(!name){ el('vVaccineName').focus(); return; }
-    pet.vaccinations = pet.vaccinations || [];
-    pet.vaccinations.push({
-      id: crypto.randomUUID(), name,
-      dateGiven: el('vDateGiven').value, nextDue: el('vNextDue').value
-    });
+    const payload = {
+      pet_id: editingId, name,
+      date_given: el('vDateGiven').value || null,
+      next_due: el('vNextDue').value || null
+    };
+    const { data, error } = await supabaseClient.from('pet_vaccinations').insert(payload).select().single();
+    if(error){ showToast('Could not add vaccination'); console.error(error); return; }
+    currentVaccinations.push({ id: data.id, name: data.name, dateGiven: data.date_given, nextDue: data.next_due });
     el('vVaccineName').value = ''; el('vDateGiven').value = ''; el('vNextDue').value = '';
-    await writeManifest();
-    renderVaccineList(pet);
-    renderSlots();
+    renderVaccineList();
+    await loadPets();
     showToast('Vaccination added');
   });
 
   // ---- Expenses ----
-  function renderExpenseList(pet){
+  function renderExpenseList(){
     const list = el('expenseList');
-    const items = (pet.expenses||[]).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    const items = currentExpenses.slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
     const total = items.reduce((a,e) => a + Number(e.amount||0), 0);
     el('expenseTotal').textContent = currency(total);
     if(items.length === 0){
@@ -1004,57 +912,56 @@
   }
   el('expenseList').addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-del-expense]');
-    if(!btn) return;
-    const pet = pets.find(p => p.id === editingId);
-    if(!pet) return;
-    pet.expenses = (pet.expenses||[]).filter(x => x.id !== btn.dataset.delExpense);
-    await writeManifest();
-    renderExpenseList(pet);
-    renderSlots();
+    if(!btn || !editingId) return;
+    const { error } = await supabaseClient.from('pet_expenses').delete().eq('id', btn.dataset.delExpense);
+    if(error){ showToast('Could not remove expense'); console.error(error); return; }
+    currentExpenses = currentExpenses.filter(x => x.id !== btn.dataset.delExpense);
+    renderExpenseList();
+    await loadPets();
   });
   el('addExpenseBtn').addEventListener('click', async () => {
-    const pet = pets.find(p => p.id === editingId);
-    if(!pet) return;
+    if(!editingId) return;
     const description = el('eDesc').value.trim();
     const amount = parseFloat(el('eAmount').value);
     if(!description){ el('eDesc').focus(); return; }
     if(isNaN(amount) || amount <= 0){ el('eAmount').focus(); return; }
-    pet.expenses = pet.expenses || [];
-    pet.expenses.push({
-      id: crypto.randomUUID(), description, amount,
+    const payload = {
+      pet_id: editingId, description, amount,
       category: el('eCategory').value,
-      date: el('eDate').value || new Date().toISOString().slice(0,10)
-    });
+      expense_date: el('eDate').value || new Date().toISOString().slice(0,10)
+    };
+    const { data, error } = await supabaseClient.from('pet_expenses').insert(payload).select().single();
+    if(error){ showToast('Could not add expense'); console.error(error); return; }
+    currentExpenses.push({ id: data.id, description: data.description, category: data.category, amount: data.amount, date: data.expense_date });
     el('eDesc').value = ''; el('eAmount').value = ''; el('eDate').value = '';
-    await writeManifest();
-    renderExpenseList(pet);
-    renderSlots();
+    renderExpenseList();
+    await loadPets();
     showToast('Expense added');
   });
 
   // ---- Documents ----
-  async function renderPetDocs(pet){
+  async function loadDocuments(petId){
+    const { data, error } = await supabaseClient
+      .from('pet_documents').select('*').eq('pet_id', petId).order('added_at', { ascending: false });
+    if(error){ showToast('Error loading documents'); console.error(error); return; }
+    currentDocuments = data;
+    await renderPetDocs();
+  }
+  async function renderPetDocs(){
     const list = el('petDocList');
-    const docs = pet.documents || [];
-    Object.values(docThumbs).forEach(u => URL.revokeObjectURL(u));
     docThumbs = {};
-    if(docs.length === 0){
+    if(currentDocuments.length === 0){
       list.innerHTML = '<div class="no-items">No documents yet</div>';
       return;
     }
-    for(const d of docs){
-      if(d.isImage){
-        try{
-          const fh = await currentPetDir.getFileHandle(d.storedName);
-          const file = await fh.getFile();
-          docThumbs[d.id] = URL.createObjectURL(file);
-        }catch(e){ /* missing */ }
-      }
-    }
-    list.innerHTML = docs.map(d => `
+    await Promise.all(currentDocuments.filter(d => d.is_image).map(async (d) => {
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(d.storage_path, 3600);
+      if(!error) docThumbs[d.id] = data.signedUrl;
+    }));
+    list.innerHTML = currentDocuments.map(d => `
       <div class="doc-row">
         <div class="dicon">
-          ${d.isImage && docThumbs[d.id]
+          ${d.is_image && docThumbs[d.id]
             ? `<img src="${docThumbs[d.id]}" alt="">`
             : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
         </div>
@@ -1074,29 +981,26 @@
   el('petDocList').addEventListener('click', async (e) => {
     const dl = e.target.closest('[data-ddownload]');
     const delBtn = e.target.closest('[data-ddel]');
-    const pet = pets.find(p => p.id === editingId);
-    if(!pet) return;
     if(dl){
-      const d = (pet.documents||[]).find(x => x.id === dl.dataset.ddownload);
+      const d = currentDocuments.find(x => x.id === dl.dataset.ddownload);
       if(!d) return;
-      try{
-        const fh = await currentPetDir.getFileHandle(d.storedName);
-        const file = await fh.getFile();
-        const url = URL.createObjectURL(file);
-        const a = document.createElement('a');
-        a.href = url; a.download = d.name; a.click();
-        URL.revokeObjectURL(url);
-      }catch(err){ showToast('Could not find that file'); }
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(d.storage_path, 60);
+      if(error){ showToast('Could not download that file'); return; }
+      const a = document.createElement('a');
+      a.href = data.signedUrl; a.download = d.name; a.click();
     }
     if(delBtn){
       const id = delBtn.dataset.ddel;
-      const d = (pet.documents||[]).find(x => x.id === id);
+      const d = currentDocuments.find(x => x.id === id);
       if(!d) return;
       if(!confirm(`Delete "${d.name}"? This can't be undone.`)) return;
-      try{ await currentPetDir.removeEntry(d.storedName); }catch(err){ /* already gone */ }
-      pet.documents = (pet.documents||[]).filter(x => x.id !== id);
-      await writeManifest();
-      await renderPetDocs(pet);
+
+      const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove([d.storage_path]);
+      if(storageErr){ showToast('Could not delete file from storage'); console.error(storageErr); return; }
+      const { error: dbErr } = await supabaseClient.from('pet_documents').delete().eq('id', id);
+      if(dbErr){ showToast('Could not delete document record'); return; }
+
+      await loadDocuments(editingId);
       showToast('Document deleted');
     }
   });
@@ -1114,36 +1018,29 @@
   petFileInput.addEventListener('change', () => handlePetFiles(petFileInput.files));
 
   async function handlePetFiles(fileList){
-    const pet = pets.find(p => p.id === editingId);
-    if(!pet || !currentPetDir) return;
+    if(!editingId) return;
     for(const file of Array.from(fileList)){
       if(file.size > 50 * 1024 * 1024){ showToast(`${file.name} is over 50MB — skipped`); continue; }
-      const storedName = `${Date.now()}_${file.name}`;
-      try{
-        const fh = await currentPetDir.getFileHandle(storedName, {create:true});
-        const writable = await fh.createWritable();
-        await writable.write(file);
-        await writable.close();
-        pet.documents = pet.documents || [];
-        pet.documents.push({
-          id: crypto.randomUUID(), name: file.name, storedName,
-          size: file.size, isImage: file.type.startsWith('image/'),
-          addedAt: new Date().toISOString()
-        });
-        showToast(`${file.name} saved`);
-      }catch(err){ showToast(`Could not save ${file.name}`); }
+      const storagePath = `documents/${editingId}/${crypto.randomUUID()}_${file.name}`;
+      const { error: uploadErr } = await supabaseClient.storage.from(BUCKET).upload(storagePath, file);
+      if(uploadErr){ showToast(`Could not upload ${file.name}`); console.error(uploadErr); continue; }
+
+      const { error: dbErr } = await supabaseClient.from('pet_documents').insert({
+        pet_id: editingId, name: file.name, storage_path: storagePath,
+        size: file.size, is_image: file.type.startsWith('image/')
+      });
+      if(dbErr){ showToast(`Uploaded but failed to save record for ${file.name}`); continue; }
+      showToast(`${file.name} saved`);
     }
     petFileInput.value = '';
-    await writeManifest();
-    await renderPetDocs(pet);
+    await loadDocuments(editingId);
   }
 
   // ---- Avatar ----
   el('avatarInput').addEventListener('change', async () => {
     const file = el('avatarInput').files[0];
     if(!file) return;
-    const pet = pets.find(p => p.id === editingId);
-    if(!pet || !currentPetDir){
+    if(!editingId){
       showToast('Save this pet first to add a photo');
       el('avatarInput').value = '';
       return;
@@ -1153,21 +1050,22 @@
       el('avatarInput').value = '';
       return;
     }
+    const pet = pets.find(p => p.id === editingId);
     try{
-      if(pet.avatarName){
-        try{ await currentPetDir.removeEntry(pet.avatarName); }catch(e){ /* already gone */ }
+      if(pet && pet.avatarPath){
+        await supabaseClient.storage.from(BUCKET).remove([pet.avatarPath]);
       }
       const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
-      const storedName = `avatar_${Date.now()}.${ext}`;
-      const fh = await currentPetDir.getFileHandle(storedName, {create:true});
-      const writable = await fh.createWritable();
-      await writable.write(file);
-      await writable.close();
-      pet.avatarName = storedName;
-      await writeManifest();
-      await buildAvatarThumbs();
-      renderAvatarPreview(pet);
-      renderSlots();
+      const storagePath = `avatars/${editingId}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabaseClient.storage.from(BUCKET).upload(storagePath, file);
+      if(uploadErr){ showToast('Could not save photo'); console.error(uploadErr); return; }
+
+      const { error: dbErr } = await supabaseClient.from('pets').update({ avatar_path: storagePath }).eq('id', editingId);
+      if(dbErr){ showToast('Could not save photo'); console.error(dbErr); return; }
+
+      await loadPets();
+      const updated = pets.find(p => p.id === editingId);
+      renderAvatarPreview(updated);
       showToast('Photo updated');
     }catch(err){
       showToast('Could not save photo');
@@ -1176,14 +1074,18 @@
   });
   el('removeAvatarBtn').addEventListener('click', async () => {
     const pet = pets.find(p => p.id === editingId);
-    if(!pet || !currentPetDir || !pet.avatarName) return;
+    if(!pet || !pet.avatarPath) return;
     if(!confirm('Remove this photo?')) return;
-    try{ await currentPetDir.removeEntry(pet.avatarName); }catch(e){ /* already gone */ }
-    delete pet.avatarName;
-    await writeManifest();
-    await buildAvatarThumbs();
-    renderAvatarPreview(pet);
-    renderSlots();
+
+    const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove([pet.avatarPath]);
+    if(storageErr){ showToast('Could not remove photo'); console.error(storageErr); return; }
+
+    const { error: dbErr } = await supabaseClient.from('pets').update({ avatar_path: null }).eq('id', editingId);
+    if(dbErr){ showToast('Could not remove photo'); console.error(dbErr); return; }
+
+    await loadPets();
+    const updated = pets.find(p => p.id === editingId);
+    renderAvatarPreview(updated);
     showToast('Photo removed');
   });
 
@@ -1195,32 +1097,30 @@
       showToast(`Only ${MAX_PETS} pet profiles are supported`);
       return;
     }
-    const data = {
+    const payload = {
       name,
       species: el('fSpecies').value,
       breed: el('fBreed').value.trim(),
-      dob: el('fDob').value,
+      dob: el('fDob').value || null,
       microchip: el('fMicrochip').value.trim(),
       notes: el('fNotes').value.trim(),
-      vetName: el('fVetName').value.trim(),
-      vetContact: el('fVetContact').value.trim(),
-      nextCheckup: el('fNextCheckup').value
+      vet_name: el('fVetName').value.trim(),
+      vet_contact: el('fVetContact').value.trim(),
+      next_checkup: el('fNextCheckup').value || null
     };
+
     if(editingId){
-      const idx = pets.findIndex(p => p.id === editingId);
-      pets[idx] = {...pets[idx], ...data};
-      await writeManifest();
+      const { error } = await supabaseClient.from('pets').update(payload).eq('id', editingId);
+      if(error){ showToast('Save failed'); console.error(error); return; }
       showToast('Pet updated');
-      renderSlots();
+      await loadPets();
       closeDrawer();
     } else {
-      const id = crypto.randomUUID();
-      const folderName = sanitizeFolderName(name, id);
-      const newPet = {id, folderName, vaccinations: [], expenses: [], documents: [], ...data};
-      pets.push(newPet);
-      await writeManifest();
+      const { data, error } = await supabaseClient.from('pets').insert(payload).select().single();
+      if(error){ showToast('Save failed'); console.error(error); return; }
       showToast('Pet added');
-      renderSlots();
+      await loadPets();
+      const newPet = pets.find(p => p.id === data.id);
       await openDrawer(newPet);
     }
   });
@@ -1229,14 +1129,22 @@
     const pet = pets.find(p => p.id === editingId);
     if(!pet) return;
     if(!confirm(`Remove "${pet.name}" and all their expenses, vaccinations, and documents? This can't be undone.`)) return;
-    try{
-      const root = await dirHandle.getDirectoryHandle(PETS_DIR, {create:true});
-      await root.removeEntry(pet.folderName, {recursive:true});
-    }catch(err){ /* folder may not exist */ }
-    if(avatarThumbs[pet.id]){ URL.revokeObjectURL(avatarThumbs[pet.id]); delete avatarThumbs[pet.id]; }
-    pets = pets.filter(p => p.id !== editingId);
-    await writeManifest();
-    renderSlots();
+
+    const { data: docs, error: fetchErr } = await supabaseClient
+      .from('pet_documents').select('storage_path').eq('pet_id', pet.id);
+    if(fetchErr){ showToast('Could not check documents'); console.error(fetchErr); return; }
+
+    const paths = (docs || []).map(d => d.storage_path);
+    if(pet.avatarPath) paths.push(pet.avatarPath);
+    if(paths.length){
+      const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove(paths);
+      if(storageErr){ showToast('Could not delete files'); console.error(storageErr); return; }
+    }
+
+    const { error } = await supabaseClient.from('pets').delete().eq('id', pet.id);
+    if(error){ showToast('Delete failed'); console.error(error); return; }
+
+    await loadPets();
     closeDrawer();
     showToast('Pet removed');
   });
@@ -1246,7 +1154,7 @@
   el('overlay').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
 
-  tryAutoReconnect();
+  loadPets();
 })();
 </script>
 </body>
