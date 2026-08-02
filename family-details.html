@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Household Manager — Family Details</title>
 <style>body{visibility:hidden;}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-client.js"></script>  
 <script src="auth.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -399,35 +401,15 @@
     </div>
   </aside>
 
-  <main class="main">
+  <main class="main">    
 
-    <div class="connect-wrap" id="connectWrap">
-      <div class="icon-circle">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
-      </div>
-      <h2>Connect a folder</h2>
-      <p>Pick a folder on this PC — family profiles and any documents you attach will be stored there directly. You can reuse your Documents folder or choose a new one.</p>
-      <button class="btn btn-primary" id="connectBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
-        Choose Folder
-      </button>
-      <div class="support-warning" id="supportWarning" style="display:none;">
-        This feature needs Chrome or Edge on desktop — the browser you're using doesn't support local folder access. Try opening this page in Chrome or Edge.
-      </div>
-    </div>
-
-    <div id="vaultWrap" style="display:none;">
+    <div id="vaultWrap">
       <div class="topbar">
         <div>
           <h1>Family Details</h1>
           <p>Key family info.</p>
         </div>
-        <div class="actions-row">
-          <div class="folder-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/></svg>
-            <span>Connected: <strong id="folderName">—</strong></span>
-          </div>
-          <button class="btn btn-ghost" id="changeFolderBtn">Change Folder</button>
+        <div class="actions-row">          
         </div>
       </div>
 
