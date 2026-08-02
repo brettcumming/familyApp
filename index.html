@@ -62,7 +62,13 @@
     display:flex; flex-direction:column; align-items:center; width:100%;
   }
 
-  .hero{text-align:center; margin-bottom:52px;}
+  .top-section{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:32px;
+    width:100%; margin-bottom:52px; flex-wrap:wrap;
+  }
+  .top-section .hero{flex:1; min-width:280px;}
+
+  .hero{text-align:center; margin-bottom:0;}
   .brand-mark{
     width:64px; height:64px; border-radius:18px; margin:0 auto 22px;
     background:linear-gradient(155deg, var(--accent), #2a4fc4);
@@ -73,7 +79,7 @@
   .hero h1{font-size:32px; font-weight:800; margin:0 0 10px; letter-spacing:-0.4px;}
   .hero p{margin:0; color:var(--text-secondary); font-size:15px; max-width:46ch; margin:0 auto;}
 
-  .Application-stitch{
+  .ledger-stitch{
     height:1px; width:100%; max-width:520px; margin:36px 0 40px;
     background-image:linear-gradient(90deg, var(--border) 50%, transparent 50%);
     background-size:10px 1px; background-repeat:repeat-x; opacity:0.7;
@@ -82,115 +88,6 @@
   .grid{
     display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; width:100%;
   }
-
-  /* Planner tile */
-.planner-tile{
-  margin-top:24px;
-  background:linear-gradient(160deg, var(--panel), var(--panel-alt));
-  border:1px solid var(--border-soft); border-radius:var(--radius-lg);
-  padding:24px; position:relative; overflow:hidden;
-}
-.planner-tile::before{
-  content:""; position:absolute; top:-40%; right:-10%; width:280px; height:280px;
-  background:radial-gradient(circle, rgba(76,124,240,0.16), transparent 70%);
-  pointer-events:none;
-}
-.planner-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; position:relative;}
-.planner-header h2{font-size:17px; margin:0; font-weight:700;}
-.planner-header p{margin:2px 0 0; font-size:12.5px; color:var(--text-secondary);}
-.planner-add-btn{
-  display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:9px;
-  background:var(--accent-soft); color:var(--accent-hover); border:1px solid rgba(76,124,240,0.3);
-  font-size:12.5px; font-weight:600; cursor:pointer; transition:background .15s ease;
-}
-.planner-add-btn:hover{background:rgba(76,124,240,0.22);}
-.planner-add-btn svg{width:14px; height:14px;}
-
-.planner-list{display:flex; flex-direction:column; gap:10px; position:relative;}
-.planner-event{
-  display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:11px;
-  background:var(--bg-elevated); border:1px solid var(--border-soft);
-  transition:transform .15s ease;
-}
-.planner-event:hover{transform:translateX(2px);}
-.planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
-.planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
-.planner-event.glow-yellow{border-color:rgba(240,224,76,0.4); box-shadow:0 0 18px -6px rgba(240,224,76,0.5);}
-.planner-event.glow-green{border-color:rgba(51,214,166,0.4); box-shadow:0 0 18px -6px rgba(51,214,166,0.5);}
-
-.planner-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
-.planner-dot.glow-red{background:var(--danger); box-shadow:0 0 10px 2px rgba(240,102,76,0.7);}
-.planner-dot.glow-orange{background:var(--warning); box-shadow:0 0 10px 2px rgba(240,184,76,0.7);}
-.planner-dot.glow-yellow{background:#f0e04c; box-shadow:0 0 10px 2px rgba(240,224,76,0.7);}
-.planner-dot.glow-green{background:var(--success); box-shadow:0 0 10px 2px rgba(51,214,166,0.7);}
-
-.planner-event-body{flex:1; min-width:0;}
-.planner-event-title{font-size:13.5px; font-weight:600; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.planner-event-meta{font-size:11.5px; color:var(--text-muted); margin-top:2px;}
-.planner-event-date{
-  font-family:'JetBrains Mono'; font-size:12px; color:var(--text-secondary); flex-shrink:0; text-align:right;
-}
-.planner-event-date .day{display:block; font-weight:700; color:var(--text-primary); font-size:13px;}
-.planner-del-btn{
-  width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center;
-  background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer; flex-shrink:0;
-  transition:background .12s ease, color .12s ease;
-}
-.planner-del-btn:hover{background:var(--panel); color:var(--danger);}
-.planner-del-btn svg{width:13px; height:13px;}
-
-.planner-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;}
-
-/* Reuse the same drawer/overlay pattern as other pages */
-.overlay{
-  position:fixed; inset:0; background:rgba(4,7,16,0.6); backdrop-filter:blur(2px);
-  opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;
-}
-.overlay.show{opacity:1; pointer-events:auto;}
-.drawer{
-  position:fixed; top:0; right:0; bottom:0; width:420px; max-width:92vw;
-  background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
-  border-left:1px solid var(--border); box-shadow:var(--shadow-lift);
-  transform:translateX(100%); transition:transform .25s cubic-bezier(.4,0,.2,1);
-  z-index:50; display:flex; flex-direction:column; text-align:left;
-}
-.drawer.show{transform:translateX(0);}
-.drawer-header{
-  padding:22px 24px; border-bottom:1px solid var(--border-soft);
-  display:flex; align-items:center; justify-content:space-between;
-}
-.drawer-header h2{font-size:17px; margin:0; font-weight:700;}
-.drawer-close{
-  width:30px; height:30px; border-radius:8px; background:var(--panel); border:1px solid var(--border);
-  color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;
-}
-.drawer-close:hover{color:var(--text-primary);}
-.drawer-body{padding:22px 24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:16px;}
-.field label{display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px; text-align:left;}
-.field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-input, select{
-  background:var(--panel); border:1px solid var(--border); color:var(--text-primary);
-  padding:9px 12px; border-radius:9px; font-size:13.5px; width:100%; font-family:inherit;
-}
-select{cursor:pointer;}
-.drawer-footer{padding:18px 24px; border-top:1px solid var(--border-soft); display:flex; gap:10px;}
-.drawer-footer .btn{flex:1; justify-content:center;}
-.btn{
-  display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px;
-  border:1px solid transparent; font-size:13.5px; font-weight:600; cursor:pointer;
-}
-.btn-primary{background:linear-gradient(155deg, var(--accent-hover), var(--accent)); color:#08101f;}
-.btn-ghost{background:var(--panel); color:var(--text-secondary); border-color:var(--border);}
-
-.toast{
-  position:fixed; bottom:26px; right:26px; background:var(--panel-alt); border:1px solid var(--border);
-  padding:13px 18px; border-radius:10px; font-size:13.5px; display:flex; align-items:center; gap:10px;
-  box-shadow:var(--shadow-lift); transform:translateY(20px); opacity:0; transition:all .25s ease; z-index:60;
-  text-align:left;
-}
-.toast.show{transform:translateY(0); opacity:1;}
-.toast svg{width:16px; height:16px; color:var(--success); flex-shrink:0;}
-  
   .card{    
     height:185px;
     position:relative; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
@@ -235,21 +132,146 @@ select{cursor:pointer;}
 
   footer.note{color:var(--text-muted); font-size:12px; text-align:center; padding:20px 0 32px;}
 
+  /* Planner tile */
+  .planner-tile{
+    margin-top:0; width:340px; flex-shrink:0;
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+    padding:24px; position:relative; overflow:hidden;
+  }
+  .planner-tile::before{
+    content:""; position:absolute; top:-40%; right:-10%; width:280px; height:280px;
+    background:radial-gradient(circle, rgba(76,124,240,0.16), transparent 70%);
+    pointer-events:none;
+  }
+  .planner-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; position:relative;}
+  .planner-header h2{font-size:17px; margin:0; font-weight:700;}
+  .planner-header p{margin:2px 0 0; font-size:12.5px; color:var(--text-secondary);}
+  .planner-add-btn{
+    display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:9px;
+    background:var(--accent-soft); color:var(--accent-hover); border:1px solid rgba(76,124,240,0.3);
+    font-size:12.5px; font-weight:600; cursor:pointer; transition:background .15s ease;
+  }
+  .planner-add-btn:hover{background:rgba(76,124,240,0.22);}
+  .planner-add-btn svg{width:14px; height:14px;}
+
+  .planner-list{display:flex; flex-direction:column; gap:10px; position:relative;}
+  .planner-event{
+    display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:11px;
+    background:var(--bg-elevated); border:1px solid var(--border-soft);
+    transition:transform .15s ease;
+  }
+  .planner-event:hover{transform:translateX(2px);}
+  .planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
+  .planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
+  .planner-event.glow-yellow{border-color:rgba(240,224,76,0.4); box-shadow:0 0 18px -6px rgba(240,224,76,0.5);}
+  .planner-event.glow-green{border-color:rgba(51,214,166,0.4); box-shadow:0 0 18px -6px rgba(51,214,166,0.5);}
+
+  .planner-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .planner-dot.glow-red{background:var(--danger); box-shadow:0 0 10px 2px rgba(240,102,76,0.7);}
+  .planner-dot.glow-orange{background:var(--warning); box-shadow:0 0 10px 2px rgba(240,184,76,0.7);}
+  .planner-dot.glow-yellow{background:#f0e04c; box-shadow:0 0 10px 2px rgba(240,224,76,0.7);}
+  .planner-dot.glow-green{background:var(--success); box-shadow:0 0 10px 2px rgba(51,214,166,0.7);}
+
+  .planner-event-body{flex:1; min-width:0;}
+  .planner-event-title{font-size:13.5px; font-weight:600; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .planner-event-meta{font-size:11.5px; color:var(--text-muted); margin-top:2px;}
+  .planner-event-date{
+    font-family:'JetBrains Mono'; font-size:12px; color:var(--text-secondary); flex-shrink:0; text-align:right;
+  }
+  .planner-event-date .day{display:block; font-weight:700; color:var(--text-primary); font-size:13px;}
+  .planner-del-btn{
+    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer; flex-shrink:0;
+    transition:background .12s ease, color .12s ease;
+  }
+  .planner-del-btn:hover{background:var(--panel); color:var(--danger);}
+  .planner-del-btn svg{width:13px; height:13px;}
+
+  .planner-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;}
+
+  /* Drawer / overlay / toast (shared pattern) */
+  .overlay{
+    position:fixed; inset:0; background:rgba(4,7,16,0.6); backdrop-filter:blur(2px);
+    opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .drawer{
+    position:fixed; top:0; right:0; bottom:0; width:420px; max-width:92vw;
+    background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+    border-left:1px solid var(--border); box-shadow:var(--shadow-lift);
+    transform:translateX(100%); transition:transform .25s cubic-bezier(.4,0,.2,1);
+    z-index:50; display:flex; flex-direction:column; text-align:left;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-header{
+    padding:22px 24px; border-bottom:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .drawer-header h2{font-size:17px; margin:0; font-weight:700;}
+  .drawer-close{
+    width:30px; height:30px; border-radius:8px; background:var(--panel); border:1px solid var(--border);
+    color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .drawer-close:hover{color:var(--text-primary);}
+  .drawer-body{padding:22px 24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:16px;}
+  .field label{display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px; text-align:left;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  input, select{
+    background:var(--panel); border:1px solid var(--border); color:var(--text-primary);
+    padding:9px 12px; border-radius:9px; font-size:13.5px; width:100%; font-family:inherit;
+  }
+  select{cursor:pointer;}
+  .drawer-footer{padding:18px 24px; border-top:1px solid var(--border-soft); display:flex; gap:10px;}
+  .drawer-footer .btn{flex:1; justify-content:center;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px;
+    border:1px solid transparent; font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .btn-primary{background:linear-gradient(155deg, var(--accent-hover), var(--accent)); color:#08101f;}
+  .btn-ghost{background:var(--panel); color:var(--text-secondary); border-color:var(--border);}
+
+  .toast{
+    position:fixed; bottom:26px; right:26px; background:var(--panel-alt); border:1px solid var(--border);
+    padding:13px 18px; border-radius:10px; font-size:13.5px; display:flex; align-items:center; gap:10px;
+    box-shadow:var(--shadow-lift); transform:translateY(20px); opacity:0; transition:all .25s ease; z-index:60;
+    text-align:left;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+  .toast svg{width:16px; height:16px; color:var(--success); flex-shrink:0;}
+
   @media (max-width:640px){
     .grid{grid-template-columns:1fr;}
     .wrap{padding:44px 20px 24px;}
+    .planner-tile{width:100%;}
   }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <div class="hero">
-    <div class="brand-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
+  <div class="top-section">
+    <div class="hero">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
+      </div>
+      <h1>Household Manager</h1>
+      <p>The family's shared home for payments, documents, and everything worth keeping track of.</p>
     </div>
-    <h1>Household Manager</h1>
-    <p>The family's shared home for payments, documents, and everything worth keeping track of.</p>
+
+    <div class="planner-tile">
+      <div class="planner-header">
+        <div>
+          <h2>Upcoming</h2>
+          <p>Appointments, reminders, birthdays, and events for the family.</p>
+        </div>
+        <button class="planner-add-btn" id="plannerAddBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Add
+        </button>
+      </div>
+      <div class="planner-list" id="plannerList"></div>
+    </div>
   </div>
 
   <div class="ledger-stitch"></div>
@@ -258,7 +280,7 @@ select{cursor:pointer;}
     <a href="payments.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg>
         </div>
       </div>
       <h2>Payments</h2>
@@ -269,7 +291,7 @@ select{cursor:pointer;}
     <a href="documents.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-           <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg> 
+           <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg> 
         </div>
       </div>
       <h2>Documents</h2>
@@ -280,7 +302,7 @@ select{cursor:pointer;}
     <a href="expenses.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
       </div>
       <h2>Expenses</h2>
@@ -291,7 +313,7 @@ select{cursor:pointer;}
     <a href="family-details.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
       </div>
       <h2>Family</h2>
@@ -302,7 +324,7 @@ select{cursor:pointer;}
     <a href="bond.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 10.5L12 3l9 7.5"/>
             <path d="M5 9.5V21h14V9.5"/>
             <path d="M9 21v-6h6v6"/>
@@ -317,7 +339,7 @@ select{cursor:pointer;}
     <a href="medical.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A4.5 4.5 0 0 0 17.5 4c-1.7 0-3 .7-4.5 2.5C11.5 4.7 10.2 4 8.5 4A4.5 4.5 0 0 0 4 8.5C4 13 12 21 12 21s2.5-2.4 4.5-4.5"/><path d="M9 11h3m0 0h3m-3 0V8m0 3v3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A4.5 4.5 0 0 0 17.5 4c-1.7 0-3 .7-4.5 2.5C11.5 4.7 10.2 4 8.5 4A4.5 4.5 0 0 0 4 8.5C4 13 12 21 12 21s2.5-2.4 4.5-4.5"/><path d="M9 11h3m0 0h3m-3 0V8m0 3v3"/></svg>
         </div>
       </div>
       <h2>Medical</h2>
@@ -328,7 +350,7 @@ select{cursor:pointer;}
     <a href="pets.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.5" stroke-linecap="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round">
             <ellipse cx="12" cy="16.2" rx="7" ry="5.5"/>
             <ellipse cx="5.5" cy="7.5" rx="2.9" ry="4"/>
             <ellipse cx="12" cy="4.8" rx="2.9" ry="4"/>
@@ -344,13 +366,13 @@ select{cursor:pointer;}
     <a href="property.html" class="card live payments">
       <div class="card-top">
         <div class="card-icon">
-          <div class="card-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14.7 2.7a5.2 5.2 0 0 0-6.9 6.9l-5.1 5.1a2 2 0 0 0 0 2.8l1.8 1.8a2 2 0 0 0 2.8 0l5.1-5.1a5.2 5.2 0 0 0 6.9-6.9l-3.2 3.2-2.6-.6-.6-2.6 3.2-3.2a5.2 5.2 0 0 0-1.4-1.4Z"/>
-              <circle cx="5.5" cy="18.5" r="1"/>
-            </svg>
-          </div>
-        </div>
+  <div class="card-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M14.7 2.7a5.2 5.2 0 0 0-6.9 6.9l-5.1 5.1a2 2 0 0 0 0 2.8l1.8 1.8a2 2 0 0 0 2.8 0l5.1-5.1a5.2 5.2 0 0 0 6.9-6.9l-3.2 3.2-2.6-.6-.6-2.6 3.2-3.2a5.2 5.2 0 0 0-1.4-1.4Z"/>
+  <circle cx="5.5" cy="18.5" r="1"/>
+</svg>
+</div>
+</div>
       </div>
       <h2>Home </h2>
       <p>Home maintenance.</p>
@@ -358,24 +380,10 @@ select{cursor:pointer;}
     </a>
     
   </div>
-
-<div class="planner-tile">
-  <div class="planner-header">
-    <div>
-      <h2>Upcoming</h2>
-      <p>Appointments, reminders, birthdays, and events for the family.</p>
-    </div>
-    <button class="planner-add-btn" id="plannerAddBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-      Add
-    </button>
-  </div>
-  <div class="planner-list" id="plannerList"></div>
-</div>
-  
 </div>
 
 <footer class="note">Household Manager · v1.3 ·</footer>
+
 <div class="overlay" id="overlay"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
@@ -564,5 +572,6 @@ select{cursor:pointer;}
   loadEvents();
 })();
 </script>
+
 </body>
 </html>
