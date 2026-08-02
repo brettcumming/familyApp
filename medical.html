@@ -672,45 +672,14 @@
 <script>
 (function(){
   const el = (id) => document.getElementById(id);
-  const MANIFEST_NAME = 'medical.json';
-  const RECEIPTS_DIR = 'receipts';
-  const IDB_NAME = 'familyLedgerHandles';
-  const IDB_KEY = 'medicalFolder';
+  const BUCKET = 'medical-receipts';
 
-  let dirHandle = null;
   let entries = [];
   let medAidSettings = { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
   let editingMembers = [];
   let editingId = null;
-  let currentEntryDir = null;
+  let currentReceipts = [];
   let receiptThumbs = {};
-
-  function idbOpen(){
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbGet(key){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbSet(key, value){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
 
   function showToast(msg){
     const toast = el('toast');
@@ -741,99 +710,44 @@
     const [y,m] = key.split('-');
     return new Date(Number(y), Number(m)-1, 1).toLocaleDateString('en-ZA', {month:'long', year:'numeric'});
   }
-  function sanitizeFolderName(name, id){
-    const clean = (name||'').trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g,'').toLowerCase();
-    return `${clean || 'entry'}_${id.slice(0,8)}`;
-  }
   function initials(name){
     return (name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('') || '?';
   }
- 
-  if(!('showDirectoryPicker' in window)){
-    el('supportWarning').style.display = 'block';
-    el('connectBtn').disabled = true;
-  }
 
-  async function readManifest(){
-    try{
-      const fh = await dirHandle.getFileHandle(MANIFEST_NAME);
-      const file = await fh.getFile();
-      return JSON.parse(await file.text());
-    }catch(e){ return null; }
-  }
-  async function writeManifest(){
-    const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
-    const writable = await fh.createWritable();
-    await writable.write(JSON.stringify({ settings: medAidSettings, entries }, null, 2));
-    await writable.close();
-  }
-
-  async function connectFolder(){
-    try{
-      dirHandle = await window.showDirectoryPicker();
-      await idbSet(IDB_KEY, dirHandle);
-      await afterConnect();
-    }catch(e){ /* cancelled */ }
-  }
-  async function afterConnect(){
-    el('connectWrap').style.display = 'none';
-    el('vaultWrap').style.display = 'block';
-    el('folderName').textContent = dirHandle.name;
-    const existing = await readManifest();
-    if(existing === null){
-      entries = [];
-      medAidSettings = { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
-      await writeManifest();
-    } else if(Array.isArray(existing)){
-      // migrating from an earlier version of this file that stored a plain array
-      entries = existing;
-      medAidSettings = { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
-      await writeManifest();
-    } else {
-      entries = existing.entries || [];
-      medAidSettings = existing.settings || { schemeName:'', cardNumber:'', contactNumber:'', members: [] };
-      medAidSettings.members = medAidSettings.members || [];
-    }
+  // ---- Loading ----
+  async function loadEntries(){
+    const { data, error } = await supabaseClient
+      .from('medical_expenses')
+      .select('*, medical_receipts(id)')
+      .order('expense_date', { ascending: false });
+    if(error){ showToast('Error loading expenses'); console.error(error); return; }
+    entries = data.map(e => ({
+      id: e.id, provider: e.provider, amount: e.amount, date: e.expense_date,
+      category: e.category, notes: e.notes,
+      receiptCount: (e.medical_receipts || []).length
+    }));
     render();
+  }
+
+  async function loadMedAid(){
+    const { data, error } = await supabaseClient
+      .from('medical_aid_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+    if(error){ showToast('Error loading medical aid details'); console.error(error); return; }
+    if(data){
+      medAidSettings = {
+        schemeName: data.scheme_name || '',
+        cardNumber: data.card_number || '',
+        contactNumber: data.contact_number || '',
+        members: data.members || []
+      };
+    }
     renderMedAidCard();
   }
-  async function tryAutoReconnect(){
-    let stored;
-    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
-    if(!stored) return;
-    try{
-      const perm = await stored.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){
-        dirHandle = stored;
-        await afterConnect();
-      } else {
-        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
-        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue.`;
-        el('connectBtn').textContent = 'Reconnect Folder';
-        el('connectBtn').onclick = async () => {
-          const p = await stored.requestPermission({mode:'readwrite'});
-          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
-        };
-      }
-    }catch(e){ /* fall back to normal connect */ }
-  }
 
-  el('connectBtn').addEventListener('click', connectFolder);
-  el('changeFolderBtn').addEventListener('click', () => {
-    el('vaultWrap').style.display = 'none';
-    el('connectWrap').style.display = 'block';
-    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
-    el('connectWrap').querySelector('p').textContent = 'Pick a folder on this PC — medical expenses and receipts will be saved there. You can reuse the same folder as your other modules, or choose a new one.';
-    el('connectBtn').textContent = 'Choose Folder';
-    el('connectBtn').onclick = connectFolder;
-  });
-
-  async function getEntryDir(entry, create){
-    const root = await dirHandle.getDirectoryHandle(RECEIPTS_DIR, {create:true});
-    const folderName = entry.folderName || sanitizeFolderName(entry.provider, entry.id);
-    return root.getDirectoryHandle(folderName, {create: !!create});
-  }
-
+  // ---- Stats / filters ----
   function refreshMonthOptions(){
     const monthFilter = el('monthFilter');
     const keys = Array.from(new Set(entries.map(e => monthKey(e.date)))).filter(Boolean).sort().reverse();
@@ -851,12 +765,10 @@
     catFilter.innerHTML = '<option value="all">All categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
     if(cats.includes(current)) catFilter.value = current;
   }
-
   function getMonthEntries(){
     const month = el('monthFilter').value;
     return entries.filter(e => monthKey(e.date) === month);
   }
-
   function computeStats(){
     const monthList = getMonthEntries();
     const total = monthList.reduce((a,e) => a + Number(e.amount||0), 0);
@@ -864,7 +776,7 @@
     el('statMonthLabel').textContent = monthLabel(el('monthFilter').value);
     el('statCount').textContent = monthList.length;
 
-    const totalReceipts = entries.reduce((a,e) => a + (e.receipts||[]).length, 0);
+    const totalReceipts = entries.reduce((a,e) => a + (e.receiptCount||0), 0);
     el('statReceipts').textContent = totalReceipts;
 
     const byCat = {};
@@ -892,7 +804,6 @@
       `).join('');
     }
   }
-
   function getFiltered(){
     const q = el('searchInput').value.trim().toLowerCase();
     const cat = el('categoryFilter').value;
@@ -928,7 +839,7 @@
     emptyState.style.display = 'none';
 
     tableBody.innerHTML = list.map(e => {
-      const count = (e.receipts||[]).length;
+      const count = e.receiptCount || 0;
       return `
       <tr>
         <td class="cell-desc">
@@ -959,6 +870,7 @@
     }).join('');
   }
 
+  // ---- Drawer: add/edit expense ----
   async function openDrawer(entry){
     editingId = entry ? entry.id : null;
     el('drawerTitle').textContent = entry ? 'Edit Medical Expense' : 'Add Medical Expense';
@@ -972,12 +884,11 @@
     if(entry){
       el('receiptsSection').style.display = 'block';
       el('newEntryHint').style.display = 'none';
-      currentEntryDir = await getEntryDir(entry, true);
-      await renderReceipts(entry);
+      await loadReceipts(entry.id);
     } else {
       el('receiptsSection').style.display = 'none';
       el('newEntryHint').style.display = 'block';
-      currentEntryDir = null;
+      currentReceipts = [];
     }
 
     el('drawer').classList.add('show');
@@ -988,31 +899,35 @@
     el('drawer').classList.remove('show');
     el('overlay').classList.remove('show');
     editingId = null;
-    currentEntryDir = null;
+    currentReceipts = [];
   }
 
-  async function renderReceipts(entry){
+  async function loadReceipts(expenseId){
+    const { data, error } = await supabaseClient
+      .from('medical_receipts')
+      .select('*')
+      .eq('expense_id', expenseId)
+      .order('added_at', { ascending: false });
+    if(error){ showToast('Error loading receipts'); console.error(error); return; }
+    currentReceipts = data;
+    await renderReceipts();
+  }
+
+  async function renderReceipts(){
     const list = el('receiptList');
-    const receipts = entry.receipts || [];
-    Object.values(receiptThumbs).forEach(u => URL.revokeObjectURL(u));
     receiptThumbs = {};
-    if(receipts.length === 0){
+    if(currentReceipts.length === 0){
       list.innerHTML = '<div class="no-docs">No receipts yet</div>';
       return;
     }
-    for(const r of receipts){
-      if(r.isImage){
-        try{
-          const fh = await currentEntryDir.getFileHandle(r.storedName);
-          const file = await fh.getFile();
-          receiptThumbs[r.id] = URL.createObjectURL(file);
-        }catch(e){ /* missing */ }
-      }
-    }
-    list.innerHTML = receipts.map(r => `
+    await Promise.all(currentReceipts.filter(r => r.is_image).map(async (r) => {
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(r.storage_path, 3600);
+      if(!error) receiptThumbs[r.id] = data.signedUrl;
+    }));
+    list.innerHTML = currentReceipts.map(r => `
       <div class="doc-row">
         <div class="dicon">
-          ${r.isImage && receiptThumbs[r.id]
+          ${r.is_image && receiptThumbs[r.id]
             ? `<img src="${receiptThumbs[r.id]}" alt="">`
             : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
         </div>
@@ -1033,30 +948,27 @@
   el('receiptList').addEventListener('click', async (e) => {
     const dl = e.target.closest('[data-rdownload]');
     const delBtn = e.target.closest('[data-rdel]');
-    const entry = entries.find(x => x.id === editingId);
-    if(!entry) return;
     if(dl){
-      const r = (entry.receipts||[]).find(x => x.id === dl.dataset.rdownload);
+      const r = currentReceipts.find(x => x.id === dl.dataset.rdownload);
       if(!r) return;
-      try{
-        const fh = await currentEntryDir.getFileHandle(r.storedName);
-        const file = await fh.getFile();
-        const url = URL.createObjectURL(file);
-        const a = document.createElement('a');
-        a.href = url; a.download = r.name; a.click();
-        URL.revokeObjectURL(url);
-      }catch(err){ showToast('Could not find that file'); }
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(r.storage_path, 60);
+      if(error){ showToast('Could not download that file'); return; }
+      const a = document.createElement('a');
+      a.href = data.signedUrl; a.download = r.name; a.click();
     }
     if(delBtn){
       const id = delBtn.dataset.rdel;
-      const r = (entry.receipts||[]).find(x => x.id === id);
+      const r = currentReceipts.find(x => x.id === id);
       if(!r) return;
       if(!confirm(`Delete "${r.name}"? This can't be undone.`)) return;
-      try{ await currentEntryDir.removeEntry(r.storedName); }catch(err){ /* already gone */ }
-      entry.receipts = (entry.receipts||[]).filter(x => x.id !== id);
-      await writeManifest();
-      await renderReceipts(entry);
-      render();
+
+      const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove([r.storage_path]);
+      if(storageErr){ showToast('Could not delete file from storage'); console.error(storageErr); return; }
+      const { error: dbErr } = await supabaseClient.from('medical_receipts').delete().eq('id', id);
+      if(dbErr){ showToast('Could not delete receipt record'); return; }
+
+      await loadReceipts(editingId);
+      await loadEntries();
       showToast('Receipt deleted');
     }
   });
@@ -1074,29 +986,26 @@
   receiptFileInput.addEventListener('change', () => handleReceiptFiles(receiptFileInput.files));
 
   async function handleReceiptFiles(fileList){
-    const entry = entries.find(x => x.id === editingId);
-    if(!entry || !currentEntryDir) return;
+    if(!editingId) return;
     for(const file of Array.from(fileList)){
       if(file.size > 50 * 1024 * 1024){ showToast(`${file.name} is over 50MB — skipped`); continue; }
-      const storedName = `${Date.now()}_${file.name}`;
-      try{
-        const fh = await currentEntryDir.getFileHandle(storedName, {create:true});
-        const writable = await fh.createWritable();
-        await writable.write(file);
-        await writable.close();
-        entry.receipts = entry.receipts || [];
-        entry.receipts.push({
-          id: crypto.randomUUID(), name: file.name, storedName,
-          size: file.size, isImage: file.type.startsWith('image/'),
-          addedAt: new Date().toISOString()
-        });
-        showToast(`${file.name} saved`);
-      }catch(err){ showToast(`Could not save ${file.name}`); }
+      const storagePath = `${editingId}/${crypto.randomUUID()}_${file.name}`;
+      const { error: uploadErr } = await supabaseClient.storage.from(BUCKET).upload(storagePath, file);
+      if(uploadErr){ showToast(`Could not upload ${file.name}`); console.error(uploadErr); continue; }
+
+      const { error: dbErr } = await supabaseClient.from('medical_receipts').insert({
+        expense_id: editingId,
+        name: file.name,
+        storage_path: storagePath,
+        size: file.size,
+        is_image: file.type.startsWith('image/')
+      });
+      if(dbErr){ showToast(`Uploaded but failed to save record for ${file.name}`); continue; }
+      showToast(`${file.name} saved`);
     }
     receiptFileInput.value = '';
-    await writeManifest();
-    await renderReceipts(entry);
-    render();
+    await loadReceipts(editingId);
+    await loadEntries();
   }
 
   el('saveBtn').addEventListener('click', async () => {
@@ -1107,25 +1016,23 @@
     const payload = {
       provider,
       amount,
-      date: el('fDate').value,
+      expense_date: el('fDate').value || null,
       category: el('fCategory').value,
       notes: el('fNotes').value.trim()
     };
+
     if(editingId){
-      entries = entries.map(e => e.id === editingId ? {...e, ...payload} : e);
-      await writeManifest();
+      const { error } = await supabaseClient.from('medical_expenses').update(payload).eq('id', editingId);
+      if(error){ showToast('Save failed'); console.error(error); return; }
       showToast('Expense updated');
       closeDrawer();
-      render();
+      await loadEntries();
     } else {
-      const id = crypto.randomUUID();
-      const folderName = sanitizeFolderName(provider, id);
-      const newEntry = {id, folderName, receipts: [], ...payload};
-      entries.push(newEntry);
-      await writeManifest();
+      const { data, error } = await supabaseClient.from('medical_expenses').insert(payload).select().single();
+      if(error){ showToast('Save failed'); console.error(error); return; }
       showToast('Expense added');
-      render();
-      await openDrawer(newEntry);
+      await loadEntries();
+      await openDrawer({ id: data.id, provider: data.provider, amount: data.amount, date: data.expense_date, category: data.category, notes: data.notes });
     }
   });
 
@@ -1133,19 +1040,27 @@
     const target = entries.find(e => e.id === id);
     if(!target) return;
     if(!confirm(`Remove "${target.provider}" and any attached receipts? This can't be undone.`)) return;
-    try{
-      const root = await dirHandle.getDirectoryHandle(RECEIPTS_DIR, {create:true});
-      await root.removeEntry(target.folderName, {recursive:true});
-    }catch(err){ /* folder may not exist */ }
-    entries = entries.filter(e => e.id !== id);
-    await writeManifest();
-    render();
+
+    const { data: receipts, error: fetchErr } = await supabaseClient
+      .from('medical_receipts').select('storage_path').eq('expense_id', id);
+    if(fetchErr){ showToast('Could not check receipts'); console.error(fetchErr); return; }
+
+    if(receipts && receipts.length){
+      const paths = receipts.map(r => r.storage_path);
+      const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove(paths);
+      if(storageErr){ showToast('Could not delete receipt files'); console.error(storageErr); return; }
+    }
+
+    const { error } = await supabaseClient.from('medical_expenses').delete().eq('id', id);
+    if(error){ showToast('Delete failed'); console.error(error); return; }
+
+    await loadEntries();
     showToast('Expense removed');
   }
 
   function exportCsv(){
     const rows = [['Provider','Amount','Date','Category','Notes','Receipts']];
-    getFiltered().forEach(e => rows.push([e.provider, e.amount, e.date, e.category, e.notes||'', (e.receipts||[]).length]));
+    getFiltered().forEach(e => rows.push([e.provider, e.amount, e.date, e.category, e.notes||'', e.receiptCount||0]));
     const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], {type:'text/csv'});
     const url = URL.createObjectURL(blob);
@@ -1286,21 +1201,34 @@
   el('medAidClose').addEventListener('click', closeMedAidDrawer);
   el('medAidCancelBtn').addEventListener('click', closeMedAidDrawer);
   el('medAidSaveBtn').addEventListener('click', async () => {
-    medAidSettings = {
-      schemeName: el('maScheme').value.trim(),
-      cardNumber: el('maCard').value.trim(),
-      contactNumber: el('maContact').value.trim(),
-      members: editingMembers
-        .map(m => ({ name: m.name.trim(), idNumber: (m.idNumber||'').trim(), isMain: !!m.isMain }))
-        .filter(m => m.name)
+    const members = editingMembers
+      .map(m => ({ name: m.name.trim(), idNumber: (m.idNumber||'').trim(), isMain: !!m.isMain }))
+      .filter(m => m.name);
+
+    const payload = {
+      id: 1,
+      scheme_name: el('maScheme').value.trim(),
+      card_number: el('maCard').value.trim(),
+      contact_number: el('maContact').value.trim(),
+      members,
+      updated_at: new Date().toISOString()
     };
-    await writeManifest();
+    const { error } = await supabaseClient.from('medical_aid_settings').upsert(payload);
+    if(error){ showToast('Could not save medical aid details'); console.error(error); return; }
+
+    medAidSettings = {
+      schemeName: payload.scheme_name,
+      cardNumber: payload.card_number,
+      contactNumber: payload.contact_number,
+      members
+    };
     renderMedAidCard();
     closeMedAidDrawer();
     showToast('Medical aid details saved');
   });
 
-  tryAutoReconnect();
+  loadEntries();
+  loadMedAid();
 })();
 </script>
 </body>
