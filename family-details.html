@@ -539,44 +539,13 @@
 <script>
 (function(){
   const el = (id) => document.getElementById(id);
-  const MANIFEST_NAME = 'family-members.json';
-  const MEMBERS_DIR = 'members';
-  const IDB_NAME = 'familyLedgerHandles';
-  const IDB_KEY = 'familyDetailsFolder';
+  const BUCKET = 'family-files';
 
-  let dirHandle = null;
   let members = [];
   let editingId = null;
-  let currentMemberDir = null; // FileSystemDirectoryHandle for the member being edited
+  let currentDocuments = [];
   let thumbUrls = {};
   let avatarThumbs = {};
-
-  function idbOpen(){
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbGet(key){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbSet(key, value){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
 
   function showToast(msg){
     const toast = el('toast');
@@ -595,91 +564,35 @@
     return (kb/1024).toFixed(1) + ' MB';
   }
   function initials(name){
-    return name.trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('');
-  }
-  function sanitizeFolderName(name, id){
-    const clean = name.trim().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g,'').toLowerCase();
-    return `${clean || 'member'}_${id.slice(0,8)}`;
+    return (name||'').trim().split(/\s+/).slice(0,2).map(w => w[0]?.toUpperCase() || '').join('');
   }
 
-  if(!('showDirectoryPicker' in window)){
-    el('supportWarning').style.display = 'block';
-    el('connectBtn').disabled = true;
-  }
-
-  async function readManifest(){
-    try{
-      const fh = await dirHandle.getFileHandle(MANIFEST_NAME);
-      const file = await fh.getFile();
-      return JSON.parse(await file.text());
-    }catch(e){ return []; }
-  }
-  async function writeManifest(){
-    const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
-    const writable = await fh.createWritable();
-    await writable.write(JSON.stringify(members, null, 2));
-    await writable.close();
-  }
-
-  async function connectFolder(){
-    try{
-      dirHandle = await window.showDirectoryPicker();
-      await idbSet(IDB_KEY, dirHandle);
-      await afterConnect();
-    }catch(e){ /* cancelled */ }
-  }
-  async function afterConnect(){
-    el('connectWrap').style.display = 'none';
-    el('vaultWrap').style.display = 'block';
-    el('folderName').textContent = dirHandle.name;
-    members = await readManifest();
+  // ---- Loading ----
+  async function loadMembers(){
+    const { data, error } = await supabaseClient
+      .from('family_members')
+      .select('*, family_member_documents(id)')
+      .order('created_at', { ascending: true });
+    if(error){ showToast('Error loading family members'); console.error(error); return; }
+    members = data.map(m => ({
+      id: m.id, name: m.name, relationship: m.relationship, dob: m.dob,
+      idNumber: m.id_number, bloodType: m.blood_type, phone: m.phone, email: m.email,
+      address: m.address, emergency: m.emergency_contact, notes: m.notes,
+      avatarPath: m.avatar_path,
+      documentCount: (m.family_member_documents || []).length
+    }));
     await buildAvatarThumbs();
     renderGrid();
   }
-  async function buildAvatarThumbs(){
-    Object.values(avatarThumbs).forEach(u => URL.revokeObjectURL(u));
-    avatarThumbs = {};
-    for(const m of members){
-      if(m.avatarName){
-        try{
-          const dir = await getMemberDir(m, true);
-          const fh = await dir.getFileHandle(m.avatarName);
-          const file = await fh.getFile();
-          avatarThumbs[m.id] = URL.createObjectURL(file);
-        }catch(e){ /* missing */ }
-      }
-    }
-  }
-  async function tryAutoReconnect(){
-    let stored;
-    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
-    if(!stored) return;
-    try{
-      const perm = await stored.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){
-        dirHandle = stored;
-        await afterConnect();
-      } else {
-        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
-        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue.`;
-        el('connectBtn').textContent = 'Reconnect Folder';
-        el('connectBtn').onclick = async () => {
-          const p = await stored.requestPermission({mode:'readwrite'});
-          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
-        };
-      }
-    }catch(e){ /* fall back to normal connect */ }
-  }
 
-  el('connectBtn').addEventListener('click', connectFolder);
-  el('changeFolderBtn').addEventListener('click', () => {
-    el('vaultWrap').style.display = 'none';
-    el('connectWrap').style.display = 'block';
-    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
-    el('connectWrap').querySelector('p').textContent = 'Pick a folder on this PC — family profiles and any documents you attach will be stored there directly. You can reuse your Documents folder or choose a new one.';
-    el('connectBtn').textContent = 'Choose Folder';
-    el('connectBtn').onclick = connectFolder;
-  });
+  async function buildAvatarThumbs(){
+    avatarThumbs = {};
+    const withAvatars = members.filter(m => m.avatarPath);
+    await Promise.all(withAvatars.map(async (m) => {
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(m.avatarPath, 3600);
+      if(!error) avatarThumbs[m.id] = data.signedUrl;
+    }));
+  }
 
   function renderGrid(){
     const grid = el('memberGrid');
@@ -704,7 +617,7 @@
             <div class="rel">${escapeHtml(m.relationship || '—')}</div>
           </div>
           <div class="member-meta">
-            <span>${(m.documents||[]).length} document${(m.documents||[]).length===1?'':'s'}</span>
+            <span>${m.documentCount||0} document${(m.documentCount||0)===1?'':'s'}</span>
           </div>
         `;
         card.addEventListener('click', () => openDrawer(m));
@@ -712,12 +625,6 @@
       });
     }
     grid.appendChild(addCard);
-  }
-
-  async function getMemberDir(member, create){
-    const membersRoot = await dirHandle.getDirectoryHandle(MEMBERS_DIR, {create:true});
-    const folderName = member.folderName || sanitizeFolderName(member.name, member.id);
-    return membersRoot.getDirectoryHandle(folderName, {create: !!create});
   }
 
   async function openDrawer(member){
@@ -743,12 +650,11 @@
     if(member){
       el('docsSection').style.display = 'block';
       el('newMemberHint').style.display = 'none';
-      currentMemberDir = await getMemberDir(member, true);
-      await renderMemberDocs(member);
+      await loadDocuments(member.id);
     } else {
       el('docsSection').style.display = 'none';
       el('newMemberHint').style.display = 'block';
-      currentMemberDir = null;
+      currentDocuments = [];
     }
 
     el('drawer').classList.add('show');
@@ -758,7 +664,7 @@
   function renderAvatarPreview(member){
     const preview = el('avatarPreview');
     const removeBtn = el('removeAvatarBtn');
-    if(member && member.avatarName && avatarThumbs[member.id]){
+    if(member && member.avatarPath && avatarThumbs[member.id]){
       preview.innerHTML = `<img src="${avatarThumbs[member.id]}" alt="">`;
       removeBtn.style.display = 'inline-flex';
     } else {
@@ -770,31 +676,36 @@
     el('drawer').classList.remove('show');
     el('overlay').classList.remove('show');
     editingId = null;
-    currentMemberDir = null;
+    currentDocuments = [];
   }
 
-  async function renderMemberDocs(member){
+  // ---- Documents ----
+  async function loadDocuments(memberId){
+    const { data, error } = await supabaseClient
+      .from('family_member_documents')
+      .select('*')
+      .eq('member_id', memberId)
+      .order('added_at', { ascending: false });
+    if(error){ showToast('Error loading documents'); console.error(error); return; }
+    currentDocuments = data;
+    await renderMemberDocs();
+  }
+
+  async function renderMemberDocs(){
     const list = el('memberDocList');
-    const docs = member.documents || [];
-    Object.values(thumbUrls).forEach(u => URL.revokeObjectURL(u));
     thumbUrls = {};
-    if(docs.length === 0){
+    if(currentDocuments.length === 0){
       list.innerHTML = '<div class="no-docs">No documents yet</div>';
       return;
     }
-    for(const d of docs){
-      if(d.isImage){
-        try{
-          const fh = await currentMemberDir.getFileHandle(d.storedName);
-          const file = await fh.getFile();
-          thumbUrls[d.id] = URL.createObjectURL(file);
-        }catch(e){ /* missing */ }
-      }
-    }
-    list.innerHTML = docs.map(d => `
+    await Promise.all(currentDocuments.filter(d => d.is_image).map(async (d) => {
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(d.storage_path, 3600);
+      if(!error) thumbUrls[d.id] = data.signedUrl;
+    }));
+    list.innerHTML = currentDocuments.map(d => `
       <div class="doc-row">
         <div class="dicon">
-          ${d.isImage && thumbUrls[d.id]
+          ${d.is_image && thumbUrls[d.id]
             ? `<img src="${thumbUrls[d.id]}" alt="">`
             : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
         </div>
@@ -815,35 +726,31 @@
   el('memberDocList').addEventListener('click', async (e) => {
     const dl = e.target.closest('[data-mdownload]');
     const delBtn = e.target.closest('[data-mdel]');
-    const member = members.find(m => m.id === editingId);
-    if(!member) return;
     if(dl){
-      const d = (member.documents||[]).find(x => x.id === dl.dataset.mdownload);
+      const d = currentDocuments.find(x => x.id === dl.dataset.mdownload);
       if(!d) return;
-      try{
-        const fh = await currentMemberDir.getFileHandle(d.storedName);
-        const file = await fh.getFile();
-        const url = URL.createObjectURL(file);
-        const a = document.createElement('a');
-        a.href = url; a.download = d.name; a.click();
-        URL.revokeObjectURL(url);
-      }catch(err){ showToast('Could not find that file'); }
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(d.storage_path, 60);
+      if(error){ showToast('Could not download that file'); return; }
+      const a = document.createElement('a');
+      a.href = data.signedUrl; a.download = d.name; a.click();
     }
     if(delBtn){
       const id = delBtn.dataset.mdel;
-      const d = (member.documents||[]).find(x => x.id === id);
+      const d = currentDocuments.find(x => x.id === id);
       if(!d) return;
       if(!confirm(`Delete "${d.name}"? This can't be undone.`)) return;
-      try{ await currentMemberDir.removeEntry(d.storedName); }catch(err){ /* already gone */ }
-      member.documents = (member.documents||[]).filter(x => x.id !== id);
-      await writeManifest();
-      await renderMemberDocs(member);
-      renderGrid();
+
+      const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove([d.storage_path]);
+      if(storageErr){ showToast('Could not delete file from storage'); console.error(storageErr); return; }
+      const { error: dbErr } = await supabaseClient.from('family_member_documents').delete().eq('id', id);
+      if(dbErr){ showToast('Could not delete document record'); return; }
+
+      await loadDocuments(editingId);
+      await loadMembers();
       showToast('Document deleted');
     }
   });
 
-  // ---- member doc upload ----
   const memberDropzone = el('memberDropzone');
   const memberFileInput = el('memberFileInput');
   el('memberBrowseLink').addEventListener('click', () => memberFileInput.click());
@@ -857,37 +764,33 @@
   memberFileInput.addEventListener('change', () => handleMemberFiles(memberFileInput.files));
 
   async function handleMemberFiles(fileList){
-    const member = members.find(m => m.id === editingId);
-    if(!member || !currentMemberDir) return;
+    if(!editingId) return;
     for(const file of Array.from(fileList)){
       if(file.size > 50 * 1024 * 1024){ showToast(`${file.name} is over 50MB — skipped`); continue; }
-      const storedName = `${Date.now()}_${file.name}`;
-      try{
-        const fh = await currentMemberDir.getFileHandle(storedName, {create:true});
-        const writable = await fh.createWritable();
-        await writable.write(file);
-        await writable.close();
-        member.documents = member.documents || [];
-        member.documents.push({
-          id: crypto.randomUUID(), name: file.name, storedName,
-          size: file.size, isImage: file.type.startsWith('image/'),
-          addedAt: new Date().toISOString()
-        });
-        showToast(`${file.name} saved`);
-      }catch(err){ showToast(`Could not save ${file.name}`); }
+      const storagePath = `documents/${editingId}/${crypto.randomUUID()}_${file.name}`;
+      const { error: uploadErr } = await supabaseClient.storage.from(BUCKET).upload(storagePath, file);
+      if(uploadErr){ showToast(`Could not upload ${file.name}`); console.error(uploadErr); continue; }
+
+      const { error: dbErr } = await supabaseClient.from('family_member_documents').insert({
+        member_id: editingId,
+        name: file.name,
+        storage_path: storagePath,
+        size: file.size,
+        is_image: file.type.startsWith('image/')
+      });
+      if(dbErr){ showToast(`Uploaded but failed to save record for ${file.name}`); continue; }
+      showToast(`${file.name} saved`);
     }
     memberFileInput.value = '';
-    await writeManifest();
-    await renderMemberDocs(member);
-    renderGrid();
+    await loadDocuments(editingId);
+    await loadMembers();
   }
 
-  // ---- avatar upload / remove ----
+  // ---- Avatar upload / remove ----
   el('avatarInput').addEventListener('change', async () => {
     const file = el('avatarInput').files[0];
     if(!file) return;
-    const member = members.find(m => m.id === editingId);
-    if(!member || !currentMemberDir){
+    if(!editingId){
       showToast('Save this member first to add a photo');
       el('avatarInput').value = '';
       return;
@@ -897,22 +800,22 @@
       el('avatarInput').value = '';
       return;
     }
+    const member = members.find(m => m.id === editingId);
     try{
-      // remove the previous avatar file, if any, before saving the new one
-      if(member.avatarName){
-        try{ await currentMemberDir.removeEntry(member.avatarName); }catch(e){ /* already gone */ }
+      if(member && member.avatarPath){
+        await supabaseClient.storage.from(BUCKET).remove([member.avatarPath]);
       }
       const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
-      const storedName = `avatar_${Date.now()}.${ext}`;
-      const fh = await currentMemberDir.getFileHandle(storedName, {create:true});
-      const writable = await fh.createWritable();
-      await writable.write(file);
-      await writable.close();
-      member.avatarName = storedName;
-      await writeManifest();
-      await buildAvatarThumbs();
-      renderAvatarPreview(member);
-      renderGrid();
+      const storagePath = `avatars/${editingId}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabaseClient.storage.from(BUCKET).upload(storagePath, file);
+      if(uploadErr){ showToast('Could not save photo'); console.error(uploadErr); return; }
+
+      const { error: dbErr } = await supabaseClient.from('family_members').update({ avatar_path: storagePath }).eq('id', editingId);
+      if(dbErr){ showToast('Could not save photo'); console.error(dbErr); return; }
+
+      await loadMembers();
+      const updated = members.find(m => m.id === editingId);
+      renderAvatarPreview(updated);
       showToast('Photo updated');
     }catch(err){
       showToast('Could not save photo');
@@ -922,50 +825,50 @@
 
   el('removeAvatarBtn').addEventListener('click', async () => {
     const member = members.find(m => m.id === editingId);
-    if(!member || !currentMemberDir || !member.avatarName) return;
+    if(!member || !member.avatarPath) return;
     if(!confirm('Remove this photo?')) return;
-    try{ await currentMemberDir.removeEntry(member.avatarName); }catch(e){ /* already gone */ }
-    delete member.avatarName;
-    await writeManifest();
-    await buildAvatarThumbs();
-    renderAvatarPreview(member);
-    renderGrid();
+
+    const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove([member.avatarPath]);
+    if(storageErr){ showToast('Could not remove photo'); console.error(storageErr); return; }
+
+    const { error: dbErr } = await supabaseClient.from('family_members').update({ avatar_path: null }).eq('id', editingId);
+    if(dbErr){ showToast('Could not remove photo'); console.error(dbErr); return; }
+
+    await loadMembers();
+    const updated = members.find(m => m.id === editingId);
+    renderAvatarPreview(updated);
     showToast('Photo removed');
   });
 
-  // ---- save / delete member ----
+  // ---- Save / delete member ----
   el('saveBtn').addEventListener('click', async () => {
     const name = el('fName').value.trim();
     if(!name){ el('fName').focus(); return; }
-    const data = {
+    const payload = {
       name,
       relationship: el('fRelationship').value,
-      dob: el('fDob').value,
-      idNumber: el('fIdNumber').value.trim(),
-      bloodType: el('fBloodType').value,
+      dob: el('fDob').value || null,
+      id_number: el('fIdNumber').value.trim(),
+      blood_type: el('fBloodType').value,
       phone: el('fPhone').value.trim(),
       email: el('fEmail').value.trim(),
       address: el('fAddress').value.trim(),
-      emergency: el('fEmergency').value.trim(),
+      emergency_contact: el('fEmergency').value.trim(),
       notes: el('fNotes').value.trim()
     };
 
     if(editingId){
-      const idx = members.findIndex(m => m.id === editingId);
-      members[idx] = {...members[idx], ...data};
-      await writeManifest();
+      const { error } = await supabaseClient.from('family_members').update(payload).eq('id', editingId);
+      if(error){ showToast('Save failed'); console.error(error); return; }
       showToast('Member updated');
-      renderGrid();
+      await loadMembers();
       closeDrawer();
     } else {
-      const id = crypto.randomUUID();
-      const folderName = sanitizeFolderName(name, id);
-      const newMember = {id, folderName, documents: [], ...data};
-      members.push(newMember);
-      await writeManifest();
+      const { data, error } = await supabaseClient.from('family_members').insert(payload).select().single();
+      if(error){ showToast('Save failed'); console.error(error); return; }
       showToast('Member added');
-      renderGrid();
-      // reopen in edit mode so documents can be attached right away
+      await loadMembers();
+      const newMember = members.find(m => m.id === data.id);
       await openDrawer(newMember);
     }
   });
@@ -974,14 +877,22 @@
     const member = members.find(m => m.id === editingId);
     if(!member) return;
     if(!confirm(`Remove "${member.name}" and all their attached documents and photo? This can't be undone.`)) return;
-    try{
-      const membersRoot = await dirHandle.getDirectoryHandle(MEMBERS_DIR, {create:true});
-      await membersRoot.removeEntry(member.folderName, {recursive:true});
-    }catch(err){ /* folder may not exist */ }
-    if(avatarThumbs[member.id]){ URL.revokeObjectURL(avatarThumbs[member.id]); delete avatarThumbs[member.id]; }
-    members = members.filter(m => m.id !== editingId);
-    await writeManifest();
-    renderGrid();
+
+    const { data: docs, error: fetchErr } = await supabaseClient
+      .from('family_member_documents').select('storage_path').eq('member_id', member.id);
+    if(fetchErr){ showToast('Could not check documents'); console.error(fetchErr); return; }
+
+    const paths = (docs || []).map(d => d.storage_path);
+    if(member.avatarPath) paths.push(member.avatarPath);
+    if(paths.length){
+      const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove(paths);
+      if(storageErr){ showToast('Could not delete files'); console.error(storageErr); return; }
+    }
+
+    const { error } = await supabaseClient.from('family_members').delete().eq('id', member.id);
+    if(error){ showToast('Delete failed'); console.error(error); return; }
+
+    await loadMembers();
     closeDrawer();
     showToast('Member removed');
   });
@@ -992,7 +903,7 @@
   el('overlay').addEventListener('click', closeDrawer);
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
 
-  tryAutoReconnect();
+  loadMembers();
 })();
 </script>
 </body>
