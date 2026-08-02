@@ -128,11 +128,11 @@
 
   /* Planner tile — sits between the hero and the card grid, grows horizontally */
   .planner-tile{
-    width:100%; margin-bottom:40px;
-    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
-    border:1px solid var(--border-soft); border-radius:var(--radius-lg);
-    padding:14px 20px; position:relative; overflow:hidden;
-  }
+  width:fit-content; max-width:100%; min-width:340px; margin-bottom:40px;
+  background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+  border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+  padding:14px 20px; position:relative; overflow:hidden;
+}
   .planner-tile::before{
     content:""; position:absolute; top:-60%; right:-6%; width:320px; height:120px;
     background:radial-gradient(circle, rgba(76,124,240,0.14), transparent 70%);
