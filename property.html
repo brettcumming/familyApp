@@ -1,1 +1,1129 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Household Manager — Home Maintenance</title>
+<style>body{visibility:hidden;}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-client.js"></script>
+<script src="auth.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f1e;
+    --bg-elevated:#0d1426;
+    --panel:#121b31;
+    --panel-alt:#16213b;
+    --border:#22304f;
+    --border-soft:rgba(255,255,255,0.06);
+    --text-primary:#eaf0fb;
+    --text-secondary:#9aa8c7;
+    --text-muted:#66759c;
+    --accent:#4c7cf0;
+    --accent-hover:#6690ff;
+    --accent-soft:rgba(76,124,240,0.14);
+    --success:#33d6a6;
+    --success-soft:rgba(51,214,166,0.12);
+    --warning:#f0b84c;
+    --warning-soft:rgba(240,184,76,0.12);
+    --danger:#f0664c;
+    --danger-soft:rgba(240,102,76,0.13);
+    --radius-sm:8px;
+    --radius-md:12px;
+    --radius-lg:18px;
+    --shadow-soft: 0 8px 24px rgba(0,0,0,0.35);
+    --shadow-lift: 0 16px 40px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(76,124,240,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(51,214,166,0.05), transparent 60%),
+      var(--bg);
+    color:var(--text-primary);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:'Sora', sans-serif;}
+  .mono{font-family:'JetBrains Mono', monospace;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  .app{display:grid; grid-template-columns:260px 1fr; min-height:100vh;}
+
+  .sidebar{
+    background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+    border-right:1px solid var(--border-soft);
+    padding:28px 20px; display:flex; flex-direction:column; gap:32px; position:relative;
+  }
+  .sidebar::before{
+    content:""; position:absolute; top:0; left:0; bottom:0; width:2px;
+    background:linear-gradient(180deg, var(--accent), transparent 70%); opacity:0.6;
+  }
+  .brand{display:flex; align-items:center; gap:12px; padding:0 4px;}
+  .brand-mark{
+    width:40px; height:40px; border-radius:11px;
+    background:linear-gradient(155deg, var(--accent), #2a4fc4);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(76,124,240,0.35); flex-shrink:0;
+  }
+  .brand-mark svg{width:20px; height:20px;}
+  .brand-text{display:flex; flex-direction:column; line-height:1.25;}
+  .brand-text strong{font-family:'Sora'; font-size:15.5px; font-weight:700; letter-spacing:0.2px;}
+  .brand-text span{font-size:11.5px; color:var(--text-muted); font-weight:500;}
+  .nav{display:flex; flex-direction:column; gap:4px;}
+  .nav-label{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:1.2px;
+    color:var(--text-muted); font-weight:600; padding:0 12px; margin-bottom:6px;
+  }
+  .nav-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; border-radius:8px; font-size:14px; font-weight:500;
+    color:var(--text-secondary); cursor:pointer; transition:background .15s ease, color .15s ease;
+    border:1px solid transparent; text-decoration:none;
+  }
+  .nav-item .left{display:flex; align-items:center; gap:10px;}
+  .nav-item svg{width:17px; height:17px; opacity:0.85;}
+  .nav-item.active{background:var(--accent-soft); color:var(--text-primary); border-color:rgba(76,124,240,0.35);}
+  .nav-item:not(.active):hover{background:rgba(255,255,255,0.03); color:var(--text-primary);}
+  .sidebar-footer{
+    margin-top:auto; padding-top:18px; border-top:1px dashed var(--border);
+    font-size:11.5px; color:var(--text-muted); display:flex; flex-direction:column; gap:4px;
+  }
+
+  .main{padding:32px 40px 60px; max-width:1280px; width:100%;}
+  .topbar{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:24px;
+    margin-bottom:28px; flex-wrap:wrap;
+  }
+  .topbar h1{font-size:26px; font-weight:700; margin:0 0 6px; letter-spacing:-0.3px;}
+  .topbar p{margin:0; color:var(--text-secondary); font-size:14px; max-width:50ch;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px;
+    border:1px solid transparent; font-size:13.5px; font-weight:600; cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  .btn svg{width:16px; height:16px;}
+  .btn-primary{
+    background:linear-gradient(155deg, var(--accent-hover), var(--accent)); color:#08101f;
+    box-shadow:0 8px 20px rgba(76,124,240,0.28);
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 24px rgba(76,124,240,0.38);}
+  .btn-ghost{background:var(--panel); color:var(--text-secondary); border-color:var(--border);}
+  .btn-ghost:hover{color:var(--text-primary); border-color:rgba(255,255,255,0.18); background:var(--panel-alt);}
+  .btn-danger-text{background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer;}
+  .btn-danger-text:hover{color:var(--danger);}
+  .actions-row{display:flex; gap:10px; flex-shrink:0; flex-wrap:wrap;}
+
+  .stats{display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:14px;}
+  .stat-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:18px 20px;
+  }
+  .stat-card .icon-wrap{
+    width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+  }
+  .stat-card .icon-wrap svg{width:16px; height:16px;}
+  .stat-card .label{font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;}
+  .stat-card .value{font-family:'Sora'; font-size:20px; font-weight:700; margin-top:6px;}
+  .stat-card .sub{font-size:12px; color:var(--text-muted); margin-top:4px;}
+  .stat-card.active .icon-wrap{background:var(--accent-soft); color:var(--accent-hover);}
+  .stat-card.spent .icon-wrap{background:var(--success-soft); color:var(--success);}
+  .stat-card.done .icon-wrap{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
+  .stat-card.ideas .icon-wrap{background:var(--warning-soft); color:var(--warning);}
+
+  .ledger-stitch{
+    height:1px; margin:26px 0 24px;
+    background-image:linear-gradient(90deg, var(--border) 50%, transparent 50%);
+    background-size:10px 1px; background-repeat:repeat-x; opacity:0.7;
+  }
+
+  .section-heading{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .section-heading h2{font-size:17px; margin:0; font-weight:700;}
+  .section-heading p{margin:2px 0 0; font-size:13px; color:var(--text-secondary);}
+
+  /* project cards */
+  .project-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; margin-bottom:40px;}
+  .project-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:20px;
+    cursor:pointer; transition:transform .15s ease, border-color .15s ease;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .project-card:hover{transform:translateY(-2px); border-color:rgba(255,255,255,0.15);}
+  .project-card-top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+  .project-card h3{font-size:15.5px; margin:0; font-weight:700;}
+  .status-pill{
+    display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px;
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; flex-shrink:0;
+  }
+  .status-pill::before{content:""; width:6px; height:6px; border-radius:50%;}
+  .status-pill.planning{background:rgba(255,255,255,0.06); color:var(--text-secondary);}
+  .status-pill.planning::before{background:var(--text-secondary);}
+  .status-pill.in-progress{background:var(--accent-soft); color:var(--accent-hover);}
+  .status-pill.in-progress::before{background:var(--accent-hover);}
+  .status-pill.on-hold{background:var(--warning-soft); color:var(--warning);}
+  .status-pill.on-hold::before{background:var(--warning);}
+  .status-pill.completed{background:var(--success-soft); color:var(--success);}
+  .status-pill.completed::before{background:var(--success);}
+  .project-card .desc{font-size:12.5px; color:var(--text-secondary); line-height:1.5; flex:1;}
+  .project-card-meta{
+    display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-muted);
+    padding-top:10px; border-top:1px solid var(--border-soft); margin-top:auto;
+  }
+  .project-card-meta strong{color:var(--text-primary); font-family:'JetBrains Mono'; font-weight:600;}
+
+  .add-project-card{
+    border:2px dashed var(--border); border-radius:var(--radius-md); padding:20px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    cursor:pointer; color:var(--text-muted); transition:border-color .15s ease, color .15s ease;
+    min-height:150px;
+  }
+  .add-project-card:hover{border-color:var(--accent); color:var(--accent-hover);}
+  .add-project-card svg{width:24px; height:24px;}
+  .add-project-card span{font-size:13px; font-weight:600;}
+
+  .empty-state{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:50px 20px; text-align:center; color:var(--text-muted); grid-column:1/-1;
+  }
+  .empty-state svg{width:32px; height:32px; margin-bottom:12px; opacity:0.5;}
+  .empty-state h3{margin:0 0 6px; color:var(--text-secondary); font-size:15px;}
+  .empty-state p{margin:0; font-size:13px;}
+
+  /* ideas board */
+  .idea-dropzone{
+    border:2px dashed var(--border); border-radius:var(--radius-md); padding:30px 20px;
+    text-align:center; margin-bottom:20px; transition:border-color .15s ease, background .15s ease;
+    background:var(--panel);
+  }
+  .idea-dropzone.drag{border-color:var(--accent); background:var(--accent-soft);}
+  .idea-dropzone svg{width:28px; height:28px; color:var(--text-muted); margin-bottom:10px;}
+  .idea-dropzone p{margin:0 0 4px; font-size:14px; color:var(--text-secondary); font-weight:500;}
+  .idea-dropzone span{font-size:12px; color:var(--text-muted);}
+  .idea-dropzone .browse{color:var(--accent-hover); font-weight:600; cursor:pointer;}
+  .idea-dropzone input[type=file]{display:none;}
+
+  .idea-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;}
+  .idea-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md); overflow:hidden;
+    display:flex; flex-direction:column; transition:border-color .15s ease, transform .15s ease;
+  }
+  .idea-card:hover{border-color:rgba(255,255,255,0.15); transform:translateY(-2px);}
+  .idea-thumb{
+    height:150px; background:var(--bg-elevated); display:flex; align-items:center; justify-content:center;
+    overflow:hidden; border-bottom:1px solid var(--border-soft);
+  }
+  .idea-thumb img{width:100%; height:100%; object-fit:cover;}
+  .idea-thumb svg{width:32px; height:32px; color:var(--text-muted);}
+  .idea-body{padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .idea-caption{font-size:12.5px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;}
+
+  /* drawer */
+  .overlay{
+    position:fixed; inset:0; background:rgba(4,7,16,0.6); backdrop-filter:blur(2px);
+    opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;
+  }
+  .overlay.show{opacity:1; pointer-events:auto;}
+  .drawer{
+    position:fixed; top:0; right:0; bottom:0; width:520px; max-width:95vw;
+    background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+    border-left:1px solid var(--border); box-shadow:var(--shadow-lift);
+    transform:translateX(100%); transition:transform .25s cubic-bezier(.4,0,.2,1);
+    z-index:50; display:flex; flex-direction:column;
+  }
+  .drawer.show{transform:translateX(0);}
+  .drawer-header{
+    padding:22px 24px; border-bottom:1px solid var(--border-soft);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .drawer-header h2{font-size:17px; margin:0; font-weight:700;}
+  .drawer-close{
+    width:30px; height:30px; border-radius:8px; background:var(--panel); border:1px solid var(--border);
+    color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .drawer-close:hover{color:var(--text-primary);}
+  .drawer-body{padding:22px 24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;}
+  .field label{display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  input, select, textarea{
+    background:var(--panel); border:1px solid var(--border); color:var(--text-primary);
+    padding:9px 12px; border-radius:9px; font-size:13.5px; width:100%; font-family:inherit;
+  }
+  textarea{resize:vertical; min-height:56px;}
+  input::placeholder, textarea::placeholder{color:var(--text-muted);}
+  select{cursor:pointer;}
+  .drawer-footer{padding:18px 24px; border-top:1px solid var(--border-soft); display:flex; gap:10px;}
+  .drawer-footer .btn{flex:1; justify-content:center;}
+  .drawer-footer .btn.danger-ghost{flex:0 0 auto;}
+
+  .section-block{border-top:1px dashed var(--border); padding-top:16px; margin-top:4px;}
+  .section-block-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .section-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); font-weight:700;
+  }
+  .save-hint{
+    font-size:11.5px; color:var(--text-muted); background:var(--panel); border:1px solid var(--border-soft);
+    border-radius:8px; padding:10px 12px; line-height:1.5;
+  }
+
+  .expense-total{
+    display:flex; justify-content:space-between; align-items:center; font-size:13px;
+    color:var(--text-secondary); padding:2px 2px 6px;
+  }
+  .expense-total strong{font-family:'JetBrains Mono'; color:var(--text-primary); font-size:14px;}
+
+  .mini-list{display:flex; flex-direction:column; gap:8px;}
+  .mini-row{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--panel);
+    border:1px solid var(--border-soft); border-radius:9px; font-size:12.5px; cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  .mini-row:hover{border-color:var(--accent);}
+  .mini-row.selected{border-color:var(--accent); background:var(--accent-soft);}
+  .mini-row .mtitle{font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .mini-row .msub{color:var(--text-muted); flex-shrink:0;}
+  .mini-row .receipt-badge{
+    display:flex; align-items:center; gap:4px; font-size:11px; color:var(--text-muted); flex-shrink:0;
+  }
+  .mini-row .receipt-badge svg{width:12px; height:12px;}
+  .mini-row .receipt-badge.has{color:var(--success);}
+  .no-items{font-size:12.5px; color:var(--text-muted); text-align:center; padding:10px 0;}
+
+  .add-row-card{border:1px solid var(--border-soft); border-radius:10px; padding:12px; background:var(--panel);}
+  .add-row-card .field-row{margin-bottom:8px;}
+  .add-row-card .field-row:last-child{margin-bottom:0;}
+  .add-row-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px; font-size:12.5px; color:var(--accent-hover);
+    background:none; border:1px dashed var(--border); border-radius:9px; cursor:pointer; padding:9px 0; font-weight:600;
+    width:100%;
+  }
+  .add-row-btn:hover{border-color:var(--accent);}
+  .add-row-btn svg{width:14px; height:14px;}
+
+  .mini-dropzone{
+    border:2px dashed var(--border); border-radius:10px; padding:18px; text-align:center;
+    transition:border-color .15s ease, background .15s ease; background:var(--panel);
+  }
+  .mini-dropzone.drag{border-color:var(--accent); background:var(--accent-soft);}
+  .mini-dropzone svg{width:22px; height:22px; color:var(--text-muted); margin-bottom:6px;}
+  .mini-dropzone p{margin:0 0 2px; font-size:13px; color:var(--text-secondary); font-weight:500;}
+  .mini-dropzone span{font-size:11.5px; color:var(--text-muted);}
+  .mini-dropzone .browse{color:var(--accent-hover); font-weight:600; cursor:pointer;}
+  .mini-dropzone input[type=file]{display:none;}
+
+  .doc-row{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--panel);
+    border:1px solid var(--border-soft); border-radius:9px; font-size:12.5px;
+  }
+  .doc-row .dicon{
+    width:30px; height:30px; border-radius:7px; background:var(--panel-alt); display:flex;
+    align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;
+  }
+  .doc-row .dicon img{width:100%; height:100%; object-fit:cover;}
+  .doc-row .dicon svg{width:14px; height:14px; color:var(--text-muted);}
+  .doc-row .dname{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;}
+  .doc-row .dmeta{color:var(--text-muted); font-size:11px; flex-shrink:0;}
+  .doc-row .drow-actions{display:flex; gap:4px; flex-shrink:0;}
+
+  .icon-btn{
+    width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer;
+    transition:background .12s ease, color .12s ease, border-color .12s ease; flex-shrink:0;
+  }
+  .icon-btn svg{width:13.5px; height:13.5px;}
+  .icon-btn:hover{background:var(--panel-alt); color:var(--text-primary); border-color:var(--border);}
+  .icon-btn.danger:hover{color:var(--danger); border-color:rgba(240,102,76,0.35); background:var(--danger-soft);}
+
+  .toast{
+    position:fixed; bottom:26px; right:26px; background:var(--panel-alt); border:1px solid var(--border);
+    padding:13px 18px; border-radius:10px; font-size:13.5px; display:flex; align-items:center; gap:10px;
+    box-shadow:var(--shadow-lift); transform:translateY(20px); opacity:0; transition:all .25s ease; z-index:60;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+  .toast svg{width:16px; height:16px; color:var(--success); flex-shrink:0;}
+
+  footer.note{margin-top:30px; color:var(--text-muted); font-size:12px; text-align:center;}
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{flex-direction:row; align-items:center; padding:16px 20px; gap:16px; overflow-x:auto;}
+    .sidebar::before{display:none;}
+    .nav{flex-direction:row;}
+    .nav-label{display:none;}
+    .sidebar-footer{display:none;}
+    .main{padding:24px 18px 50px;}
+    .stats{grid-template-columns:1fr 1fr;}
+    .field-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
+      </div>
+      <div class="brand-text">
+        <strong>Household Manager</strong>
+        <span>Home Maintenance</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label">Workspace</div>
+      <a href="index.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+          Home
+        </div>
+      </a>
+      <a href="payments.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 14h4"/></svg>
+          Payments
+        </div>
+      </a>
+      <a href="expenses.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Expenses
+        </div>
+      </a>
+      <a href="documents.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          Documents
+        </div>
+      </a>
+      <a href="family-details.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          Family Details
+        </div>
+      </a>
+      <a href="bond.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>
+          Bond Payments
+        </div>
+      </a>
+      <a href="medical.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A4.5 4.5 0 0 0 17.5 4c-1.7 0-3 .7-4.5 2.5C11.5 4.7 10.2 4 8.5 4A4.5 4.5 0 0 0 4 8.5C4 13 12 21 12 21s2.5-2.4 4.5-4.5"/><path d="M9 11h3m0 0h3m-3 0V8m0 3v3"/></svg>
+          Medical
+        </div>
+      </a>
+      <a href="pets.html" class="nav-item">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round">
+            <ellipse cx="12" cy="16.2" rx="7" ry="5.5"/>
+            <ellipse cx="5.5" cy="7.5" rx="2.9" ry="4"/>
+            <ellipse cx="12" cy="4.8" rx="2.9" ry="4"/>
+            <ellipse cx="18.5" cy="7.5" rx="2.9" ry="4"/>
+          </svg>
+          Pets
+        </div>
+      </a>
+      <a href="property.html" class="nav-item active">
+        <div class="left">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M14.7 2.7a5.2 5.2 0 0 0-6.9 6.9l-5.1 5.1a2 2 0 0 0 0 2.8l1.8 1.8a2 2 0 0 0 2.8 0l5.1-5.1a5.2 5.2 0 0 0 6.9-6.9l-3.2 3.2-2.6-.6-.6-2.6 3.2-3.2a5.2 5.2 0 0 0-1.4-1.4Z"/>
+  <circle cx="5.5" cy="18.5" r="1"/>
+</svg>
+          Home maintenance
+        </div>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span>Household Manager · v0.1</span>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div id="vaultWrap">
+      <div class="topbar">
+        <div>
+          <h1>Home Maintenance</h1>
+          <p>Projects, timelines, expenses, and receipts — plus a board for design ideas.</p>
+        </div>
+        <div class="actions-row">
+          <button class="btn btn-primary" id="addProjectBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add Project
+          </button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card active">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg></div>
+          <div class="label">Active Projects</div>
+          <div class="value mono" id="statActive">0</div>
+          <div class="sub">planning or in progress</div>
+        </div>
+        <div class="stat-card spent">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="label">Total Spent</div>
+          <div class="value mono" id="statSpent">R0.00</div>
+          <div class="sub">across all projects</div>
+        </div>
+        <div class="stat-card done">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div>
+          <div class="label">Completed</div>
+          <div class="value mono" id="statDone">0</div>
+          <div class="sub">projects finished</div>
+        </div>
+        <div class="stat-card ideas">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg></div>
+          <div class="label">Ideas Saved</div>
+          <div class="value mono" id="statIdeas">0</div>
+          <div class="sub">images & designs</div>
+        </div>
+      </div>
+
+      <div class="ledger-stitch"></div>
+
+      <div class="section-heading">
+        <div>
+          <h2>Projects</h2>
+          <p>Click a project to see its timeline, expenses, and receipts.</p>
+        </div>
+      </div>
+      <div class="project-grid" id="projectGrid"></div>
+
+      <div class="section-heading">
+        <div>
+          <h2>Ideas Board</h2>
+          <p>Drop in inspiration photos, sketches, or design mockups — not tied to any project.</p>
+        </div>
+      </div>
+      <div class="idea-dropzone" id="ideaDropzone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <p>Drag files here, or <span class="browse" id="ideaBrowseLink">browse to upload</span></p>
+        <span>Photos, drawings, screenshots — anything that sparks an idea</span>
+        <input type="file" id="ideaFileInput" multiple accept="image/*">
+      </div>
+      <div class="idea-grid" id="ideaGrid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Project Drawer -->
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle">Add Project</h2>
+    <button class="drawer-close" id="drawerClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <input type="hidden" id="editId">
+
+    <div class="section-label">Project Details</div>
+    <div class="field">
+      <label for="fName">Project name</label>
+      <input type="text" id="fName" placeholder="e.g. Repaint exterior walls">
+    </div>
+    <div class="field">
+      <label for="fDescription">Description</label>
+      <textarea id="fDescription" placeholder="What needs to be done…"></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="fStatus">Status</label>
+        <select id="fStatus">
+          <option>Planning</option>
+          <option>In Progress</option>
+          <option>On Hold</option>
+          <option>Completed</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fStartDate">Start date</label>
+        <input type="date" id="fStartDate">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="fTargetDate">Target completion</label>
+        <input type="date" id="fTargetDate">
+      </div>
+      <div class="field">
+        <label for="fCompletedDate">Completed on</label>
+        <input type="date" id="fCompletedDate">
+      </div>
+    </div>
+    <div class="field">
+      <label for="fNotes">Notes</label>
+      <textarea id="fNotes" placeholder="Contractors, quotes, anything worth remembering…"></textarea>
+    </div>
+
+    <div id="extraSections" style="display:none;">
+      <div class="section-block">
+        <div class="section-block-header">
+          <div class="section-label">Expenses</div>
+        </div>
+        <div class="expense-total">
+          <span>Total logged</span>
+          <strong id="expenseTotal">R0.00</strong>
+        </div>
+        <div class="mini-list" id="expenseList"></div>
+        <div class="add-row-card" style="margin-top:10px;">
+          <div class="field-row">
+            <div class="field"><label>Description</label><input type="text" id="eDesc" placeholder="e.g. Paint and supplies"></div>
+            <div class="field"><label>Category</label>
+              <select id="eCategory">
+                <option>Materials</option>
+                <option>Labour / Contractor</option>
+                <option>Permits</option>
+                <option>Equipment Rental</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Amount (R)</label><input type="number" id="eAmount" step="0.01" placeholder="0.00"></div>
+            <div class="field"><label>Date</label><input type="date" id="eDate"></div>
+          </div>
+          <button type="button" class="add-row-btn" id="addExpenseBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add Expense
+          </button>
+        </div>
+      </div>
+
+      <div class="section-block" id="receiptsBlock" style="display:none;">
+        <div class="section-block-header">
+          <div class="section-label">Receipts — <span id="receiptsForLabel"></span></div>
+        </div>
+        <div class="mini-dropzone" id="receiptDropzone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <p>Drag files here, or <span class="browse" id="receiptBrowseLink">browse</span></p>
+          <span>Saved against this expense</span>
+          <input type="file" id="receiptFileInput" multiple>
+        </div>
+        <div class="mini-list" id="receiptList" style="margin-top:10px;"></div>
+      </div>
+      <div class="save-hint" id="receiptsHint">Click an expense above to attach receipts to it.</div>
+    </div>
+    <div class="save-hint" id="newProjectHint">Save this project first to log expenses and attach receipts.</div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-ghost danger-ghost" id="deleteProjectBtn" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+    </button>
+    <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+    <button class="btn btn-primary" id="saveBtn">Save Project</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+  <span id="toastText">Saved</span>
+</div>
+
+<script>
+(function(){
+  const el = (id) => document.getElementById(id);
+  const BUCKET = 'property-files';
+
+  let projects = [];
+  let ideas = [];
+  let ideaThumbs = {};
+  let editingId = null;
+  let currentExpenses = [];
+  let currentReceipts = [];
+  let receiptThumbs = {};
+  let selectedExpenseId = null;
+
+  function showToast(msg){
+    const toast = el('toast');
+    el('toastText').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function currency(n){
+    return 'R' + Number(n||0).toLocaleString('en-ZA', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function formatDate(d){
+    if(!d) return '—';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-ZA', {day:'2-digit', month:'short', year:'numeric'});
+  }
+  function formatBytes(bytes){
+    if(!bytes) return '0 KB';
+    const kb = bytes / 1024;
+    if(kb < 1024) return kb.toFixed(0) + ' KB';
+    return (kb/1024).toFixed(1) + ' MB';
+  }
+  function statusClass(status){
+    return (status||'Planning').toLowerCase().replace(/\s+/g, '-');
+  }
+
+  // ---- Projects ----
+  async function loadProjects(){
+    const { data, error } = await supabaseClient
+      .from('property_projects')
+      .select('*, property_expenses(amount)')
+      .order('created_at', { ascending: false });
+    if(error){ showToast('Error loading projects'); console.error(error); return; }
+    projects = data.map(p => ({
+      id: p.id, name: p.name, status: p.status, description: p.description,
+      startDate: p.start_date, targetDate: p.target_date, completedDate: p.completed_date, notes: p.notes,
+      totalSpent: (p.property_expenses || []).reduce((a,e) => a + Number(e.amount||0), 0)
+    }));
+    computeStats();
+    renderProjectGrid();
+  }
+
+  function computeStats(){
+    const active = projects.filter(p => p.status === 'Planning' || p.status === 'In Progress').length;
+    const done = projects.filter(p => p.status === 'Completed').length;
+    const totalSpent = projects.reduce((a,p) => a + p.totalSpent, 0);
+    el('statActive').textContent = active;
+    el('statDone').textContent = done;
+    el('statSpent').textContent = currency(totalSpent);
+    el('statIdeas').textContent = ideas.length;
+  }
+
+  function renderProjectGrid(){
+    const grid = el('projectGrid');
+    if(projects.length === 0){
+      grid.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg>
+          <h3>No projects yet</h3>
+          <p>Add your first home maintenance project to start tracking it.</p>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = projects.map(p => `
+      <div class="project-card" data-open="${p.id}">
+        <div class="project-card-top">
+          <h3>${escapeHtml(p.name)}</h3>
+          <span class="status-pill ${statusClass(p.status)}">${escapeHtml(p.status)}</span>
+        </div>
+        <div class="desc">${escapeHtml(p.description || 'No description yet.')}</div>
+        <div class="project-card-meta">
+          <span>${p.targetDate ? 'Target: ' + formatDate(p.targetDate) : 'No target date'}</span>
+          <strong>${currency(p.totalSpent)}</strong>
+        </div>
+      </div>
+    `).join('') + `
+      <div class="add-project-card" id="addProjectCard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Add Project</span>
+      </div>
+    `;
+    grid.querySelectorAll('[data-open]').forEach(node => {
+      node.addEventListener('click', () => {
+        const p = projects.find(x => x.id === node.dataset.open);
+        if(p) openDrawer(p);
+      });
+    });
+    el('addProjectCard').addEventListener('click', () => openDrawer(null));
+  }
+
+  async function openDrawer(project){
+    editingId = project ? project.id : null;
+    el('drawerTitle').textContent = project ? 'Edit Project' : 'Add Project';
+    el('editId').value = project ? project.id : '';
+    el('fName').value = project ? project.name || '' : '';
+    el('fDescription').value = project ? (project.description || '') : '';
+    el('fStatus').value = project ? project.status : 'Planning';
+    el('fStartDate').value = project ? (project.startDate || '') : '';
+    el('fTargetDate').value = project ? (project.targetDate || '') : '';
+    el('fCompletedDate').value = project ? (project.completedDate || '') : '';
+    el('fNotes').value = project ? (project.notes || '') : '';
+    el('deleteProjectBtn').style.display = project ? 'flex' : 'none';
+
+    selectedExpenseId = null;
+    el('receiptsBlock').style.display = 'none';
+
+    if(project){
+      el('extraSections').style.display = 'block';
+      el('newProjectHint').style.display = 'none';
+      el('receiptsHint').style.display = 'block';
+      await loadExpenses(project.id);
+    } else {
+      el('extraSections').style.display = 'none';
+      el('newProjectHint').style.display = 'block';
+      currentExpenses = [];
+    }
+
+    el('drawer').classList.add('show');
+    el('overlay').classList.add('show');
+    setTimeout(() => el('fName').focus(), 200);
+  }
+  function closeDrawer(){
+    el('drawer').classList.remove('show');
+    el('overlay').classList.remove('show');
+    editingId = null;
+    selectedExpenseId = null;
+  }
+
+  // ---- Expenses ----
+  async function loadExpenses(projectId){
+    const { data, error } = await supabaseClient
+      .from('property_expenses').select('*, property_receipts(id)').eq('project_id', projectId).order('expense_date', { ascending: false });
+    if(error){ showToast('Error loading expenses'); console.error(error); return; }
+    currentExpenses = data.map(e => ({
+      id: e.id, description: e.description, category: e.category, amount: e.amount, date: e.expense_date,
+      receiptCount: (e.property_receipts || []).length
+    }));
+    renderExpenseList();
+  }
+  function renderExpenseList(){
+    const list = el('expenseList');
+    const items = currentExpenses.slice().sort((a,b) => (b.date||'').localeCompare(a.date||''));
+    const total = items.reduce((a,e) => a + Number(e.amount||0), 0);
+    el('expenseTotal').textContent = currency(total);
+    if(items.length === 0){
+      list.innerHTML = '<div class="no-items">No expenses logged yet</div>';
+      return;
+    }
+    list.innerHTML = items.map(e => `
+      <div class="mini-row ${e.id === selectedExpenseId ? 'selected' : ''}" data-select-expense="${e.id}">
+        <span class="mtitle">${escapeHtml(e.description)} <span style="color:var(--text-muted); font-weight:400;">· ${escapeHtml(e.category)}</span></span>
+        <span class="msub">${currency(e.amount)} · ${formatDate(e.date)}</span>
+        <span class="receipt-badge ${e.receiptCount ? 'has' : ''}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          ${e.receiptCount || 0}
+        </span>
+        <button class="icon-btn danger" data-del-expense="${e.id}" aria-label="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+    `).join('');
+  }
+  el('expenseList').addEventListener('click', async (e) => {
+    const delBtn = e.target.closest('[data-del-expense]');
+    const selectRow = e.target.closest('[data-select-expense]');
+    if(delBtn){
+      const { error } = await supabaseClient.from('property_expenses').delete().eq('id', delBtn.dataset.delExpense);
+      if(error){ showToast('Could not remove expense'); console.error(error); return; }
+      if(selectedExpenseId === delBtn.dataset.delExpense){
+        selectedExpenseId = null;
+        el('receiptsBlock').style.display = 'none';
+        el('receiptsHint').style.display = 'block';
+      }
+      await loadExpenses(editingId);
+      await loadProjects();
+      return;
+    }
+    if(selectRow){
+      selectedExpenseId = selectRow.dataset.selectExpense;
+      renderExpenseList();
+      await selectExpenseForReceipts(selectedExpenseId);
+    }
+  });
+  el('addExpenseBtn').addEventListener('click', async () => {
+    if(!editingId) return;
+    const description = el('eDesc').value.trim();
+    const amount = parseFloat(el('eAmount').value);
+    if(!description){ el('eDesc').focus(); return; }
+    if(isNaN(amount) || amount <= 0){ el('eAmount').focus(); return; }
+    const payload = {
+      project_id: editingId, description, amount,
+      category: el('eCategory').value,
+      expense_date: el('eDate').value || new Date().toISOString().slice(0,10)
+    };
+    const { error } = await supabaseClient.from('property_expenses').insert(payload);
+    if(error){ showToast('Could not add expense'); console.error(error); return; }
+    el('eDesc').value = ''; el('eAmount').value = ''; el('eDate').value = '';
+    await loadExpenses(editingId);
+    await loadProjects();
+    showToast('Expense added');
+  });
+
+  // ---- Receipts (per selected expense) ----
+  async function selectExpenseForReceipts(expenseId){
+    const expense = currentExpenses.find(x => x.id === expenseId);
+    if(!expense) return;
+    el('receiptsBlock').style.display = 'block';
+    el('receiptsHint').style.display = 'none';
+    el('receiptsForLabel').textContent = expense.description;
+    await loadReceipts(expenseId);
+  }
+  async function loadReceipts(expenseId){
+    const { data, error } = await supabaseClient
+      .from('property_receipts').select('*').eq('expense_id', expenseId).order('added_at', { ascending: false });
+    if(error){ showToast('Error loading receipts'); console.error(error); return; }
+    currentReceipts = data;
+    await renderReceiptList();
+  }
+  async function renderReceiptList(){
+    const list = el('receiptList');
+    receiptThumbs = {};
+    if(currentReceipts.length === 0){
+      list.innerHTML = '<div class="no-items">No receipts yet</div>';
+      return;
+    }
+    await Promise.all(currentReceipts.filter(r => r.is_image).map(async (r) => {
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(r.storage_path, 3600);
+      if(!error) receiptThumbs[r.id] = data.signedUrl;
+    }));
+    list.innerHTML = currentReceipts.map(r => `
+      <div class="doc-row">
+        <div class="dicon">
+          ${r.is_image && receiptThumbs[r.id]
+            ? `<img src="${receiptThumbs[r.id]}" alt="">`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
+        </div>
+        <div class="dname" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>
+        <div class="dmeta">${formatBytes(r.size)}</div>
+        <div class="drow-actions">
+          <button class="icon-btn" data-rdownload="${r.id}" aria-label="Download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </button>
+          <button class="icon-btn danger" data-rdel="${r.id}" aria-label="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+  el('receiptList').addEventListener('click', async (e) => {
+    const dl = e.target.closest('[data-rdownload]');
+    const delBtn = e.target.closest('[data-rdel]');
+    if(dl){
+      const r = currentReceipts.find(x => x.id === dl.dataset.rdownload);
+      if(!r) return;
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(r.storage_path, 60);
+      if(error){ showToast('Could not download that file'); return; }
+      const a = document.createElement('a');
+      a.href = data.signedUrl; a.download = r.name; a.click();
+    }
+    if(delBtn){
+      const id = delBtn.dataset.rdel;
+      const r = currentReceipts.find(x => x.id === id);
+      if(!r) return;
+      if(!confirm(`Delete "${r.name}"? This can't be undone.`)) return;
+
+      const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove([r.storage_path]);
+      if(storageErr){ showToast('Could not delete file from storage'); console.error(storageErr); return; }
+      const { error: dbErr } = await supabaseClient.from('property_receipts').delete().eq('id', id);
+      if(dbErr){ showToast('Could not delete receipt record'); return; }
+
+      await loadReceipts(selectedExpenseId);
+      await loadExpenses(editingId);
+      showToast('Receipt deleted');
+    }
+  });
+
+  const receiptDropzone = el('receiptDropzone');
+  const receiptFileInput = el('receiptFileInput');
+  el('receiptBrowseLink').addEventListener('click', () => receiptFileInput.click());
+  receiptDropzone.addEventListener('dragover', (e) => { e.preventDefault(); receiptDropzone.classList.add('drag'); });
+  receiptDropzone.addEventListener('dragleave', () => receiptDropzone.classList.remove('drag'));
+  receiptDropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    receiptDropzone.classList.remove('drag');
+    handleReceiptFiles(e.dataTransfer.files);
+  });
+  receiptFileInput.addEventListener('change', () => handleReceiptFiles(receiptFileInput.files));
+
+  async function handleReceiptFiles(fileList){
+    if(!selectedExpenseId) return;
+    for(const file of Array.from(fileList)){
+      if(file.size > 50 * 1024 * 1024){ showToast(`${file.name} is over 50MB — skipped`); continue; }
+      const storagePath = `receipts/${selectedExpenseId}/${crypto.randomUUID()}_${file.name}`;
+      const { error: uploadErr } = await supabaseClient.storage.from(BUCKET).upload(storagePath, file);
+      if(uploadErr){ showToast(`Could not upload ${file.name}`); console.error(uploadErr); continue; }
+
+      const { error: dbErr } = await supabaseClient.from('property_receipts').insert({
+        expense_id: selectedExpenseId, name: file.name, storage_path: storagePath,
+        size: file.size, is_image: file.type.startsWith('image/')
+      });
+      if(dbErr){ showToast(`Uploaded but failed to save record for ${file.name}`); continue; }
+      showToast(`${file.name} saved`);
+    }
+    receiptFileInput.value = '';
+    await loadReceipts(selectedExpenseId);
+    await loadExpenses(editingId);
+  }
+
+  // ---- Save / delete project ----
+  el('saveBtn').addEventListener('click', async () => {
+    const name = el('fName').value.trim();
+    if(!name){ el('fName').focus(); return; }
+    const payload = {
+      name,
+      description: el('fDescription').value.trim(),
+      status: el('fStatus').value,
+      start_date: el('fStartDate').value || null,
+      target_date: el('fTargetDate').value || null,
+      completed_date: el('fCompletedDate').value || null,
+      notes: el('fNotes').value.trim()
+    };
+
+    if(editingId){
+      const { error } = await supabaseClient.from('property_projects').update(payload).eq('id', editingId);
+      if(error){ showToast('Save failed'); console.error(error); return; }
+      showToast('Project updated');
+      await loadProjects();
+      closeDrawer();
+    } else {
+      const { data, error } = await supabaseClient.from('property_projects').insert(payload).select().single();
+      if(error){ showToast('Save failed'); console.error(error); return; }
+      showToast('Project added');
+      await loadProjects();
+      const newProject = projects.find(p => p.id === data.id);
+      await openDrawer(newProject);
+    }
+  });
+
+  el('deleteProjectBtn').addEventListener('click', async () => {
+    const project = projects.find(p => p.id === editingId);
+    if(!project) return;
+    if(!confirm(`Remove "${project.name}" and all its expenses and receipts? This can't be undone.`)) return;
+
+    const { data: expenseRows, error: expErr } = await supabaseClient
+      .from('property_expenses').select('id').eq('project_id', project.id);
+    if(expErr){ showToast('Could not check expenses'); console.error(expErr); return; }
+
+    const expenseIds = (expenseRows || []).map(x => x.id);
+    if(expenseIds.length){
+      const { data: receiptRows, error: recErr } = await supabaseClient
+        .from('property_receipts').select('storage_path').in('expense_id', expenseIds);
+      if(recErr){ showToast('Could not check receipts'); console.error(recErr); return; }
+      const paths = (receiptRows || []).map(r => r.storage_path);
+      if(paths.length){
+        const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove(paths);
+        if(storageErr){ showToast('Could not delete receipt files'); console.error(storageErr); return; }
+      }
+    }
+
+    const { error } = await supabaseClient.from('property_projects').delete().eq('id', project.id);
+    if(error){ showToast('Delete failed'); console.error(error); return; }
+
+    await loadProjects();
+    closeDrawer();
+    showToast('Project removed');
+  });
+
+  el('drawerClose').addEventListener('click', closeDrawer);
+  el('cancelBtn').addEventListener('click', closeDrawer);
+  el('overlay').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
+
+  // ---- Ideas board ----
+  async function loadIdeas(){
+    const { data, error } = await supabaseClient
+      .from('property_ideas').select('*').order('added_at', { ascending: false });
+    if(error){ showToast('Error loading ideas'); console.error(error); return; }
+    ideas = data;
+    await buildIdeaThumbs();
+    renderIdeaGrid();
+    computeStats();
+  }
+  async function buildIdeaThumbs(){
+    ideaThumbs = {};
+    await Promise.all(ideas.filter(i => i.is_image).map(async (i) => {
+      const { data, error } = await supabaseClient.storage.from(BUCKET).createSignedUrl(i.storage_path, 3600);
+      if(!error) ideaThumbs[i.id] = data.signedUrl;
+    }));
+  }
+  function renderIdeaGrid(){
+    const grid = el('ideaGrid');
+    if(ideas.length === 0){
+      grid.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          <h3>No ideas saved yet</h3>
+          <p>Drop an image above to start your board.</p>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = ideas.map(i => `
+      <div class="idea-card">
+        <div class="idea-thumb">
+          ${i.is_image && ideaThumbs[i.id]
+            ? `<img src="${ideaThumbs[i.id]}" alt="${escapeHtml(i.caption || '')}">`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>`}
+        </div>
+        <div class="idea-body">
+          <span class="idea-caption" title="${escapeHtml(i.caption || '')}">${escapeHtml(i.caption || 'Untitled')}</span>
+          <button class="icon-btn danger" data-idea-del="${i.id}" aria-label="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+  el('ideaGrid').addEventListener('click', async (e) => {
+    const delBtn = e.target.closest('[data-idea-del]');
+    if(!delBtn) return;
+    const idea = ideas.find(x => x.id === delBtn.dataset.ideaDel);
+    if(!idea) return;
+    if(!confirm('Remove this idea? This can\'t be undone.')) return;
+
+    const { error: storageErr } = await supabaseClient.storage.from(BUCKET).remove([idea.storage_path]);
+    if(storageErr){ showToast('Could not delete file from storage'); console.error(storageErr); return; }
+    const { error: dbErr } = await supabaseClient.from('property_ideas').delete().eq('id', idea.id);
+    if(dbErr){ showToast('Could not delete idea record'); return; }
+
+    await loadIdeas();
+    showToast('Idea removed');
+  });
+
+  const ideaDropzone = el('ideaDropzone');
+  const ideaFileInput = el('ideaFileInput');
+  el('ideaBrowseLink').addEventListener('click', () => ideaFileInput.click());
+  ideaDropzone.addEventListener('dragover', (e) => { e.preventDefault(); ideaDropzone.classList.add('drag'); });
+  ideaDropzone.addEventListener('dragleave', () => ideaDropzone.classList.remove('drag'));
+  ideaDropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    ideaDropzone.classList.remove('drag');
+    handleIdeaFiles(e.dataTransfer.files);
+  });
+  ideaFileInput.addEventListener('change', () => handleIdeaFiles(ideaFileInput.files));
+
+  async function handleIdeaFiles(fileList){
+    for(const file of Array.from(fileList)){
+      if(file.size > 50 * 1024 * 1024){ showToast(`${file.name} is over 50MB — skipped`); continue; }
+      const storagePath = `ideas/${crypto.randomUUID()}_${file.name}`;
+      const { error: uploadErr } = await supabaseClient.storage.from(BUCKET).upload(storagePath, file);
+      if(uploadErr){ showToast(`Could not upload ${file.name}`); console.error(uploadErr); continue; }
+
+      const { error: dbErr } = await supabaseClient.from('property_ideas').insert({
+        caption: file.name,
+        storage_path: storagePath,
+        size: file.size,
+        is_image: file.type.startsWith('image/')
+      });
+      if(dbErr){ showToast(`Uploaded but failed to save record for ${file.name}`); continue; }
+      showToast(`${file.name} saved`);
+    }
+    ideaFileInput.value = '';
+    await loadIdeas();
+  }
+
+  loadProjects();
+  loadIdeas();
+})();
+</script>
+</body>
+</html>
