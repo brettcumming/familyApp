@@ -62,13 +62,7 @@
     display:flex; flex-direction:column; align-items:center; width:100%;
   }
 
-  .top-section{
-    display:flex; align-items:flex-start; justify-content:space-between; gap:32px;
-    width:100%; margin-bottom:52px; flex-wrap:wrap;
-  }
-  .top-section .hero{flex:1; min-width:280px;}
-
-  .hero{text-align:center; margin-bottom:0;}
+  .hero{text-align:center; margin-bottom:52px;}
   .brand-mark{
     width:64px; height:64px; border-radius:18px; margin:0 auto 22px;
     background:linear-gradient(155deg, var(--accent), #2a4fc4);
@@ -132,63 +126,76 @@
 
   footer.note{color:var(--text-muted); font-size:12px; text-align:center; padding:20px 0 32px;}
 
-  /* Planner tile */
+  /* Planner tile — sits between the card grid and the hero title, grows horizontally */
   .planner-tile{
-    margin-top:0; width:400px; flex-shrink:0;
+    width:100%; margin-bottom:40px;
     background:linear-gradient(160deg, var(--panel), var(--panel-alt));
     border:1px solid var(--border-soft); border-radius:var(--radius-lg);
-    padding:24px; position:relative; overflow:hidden;
+    padding:22px 24px; position:relative; overflow:hidden;
   }
   .planner-tile::before{
-    content:""; position:absolute; top:-40%; right:-10%; width:280px; height:280px;
-    background:radial-gradient(circle, rgba(76,124,240,0.16), transparent 70%);
+    content:""; position:absolute; top:-60%; right:-6%; width:320px; height:320px;
+    background:radial-gradient(circle, rgba(76,124,240,0.14), transparent 70%);
     pointer-events:none;
   }
-  .planner-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; position:relative;}
-  .planner-header h2{font-size:17px; margin:0; font-weight:700;}
-  .planner-header p{margin:2px 0 0; font-size:12.5px; color:var(--text-secondary);}
+  .planner-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; position:relative;}
+  .planner-header h2{font-size:16px; margin:0; font-weight:700;}
+  .planner-header p{margin:2px 0 0; font-size:12px; color:var(--text-secondary);}
   .planner-add-btn{
     display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:9px;
     background:var(--accent-soft); color:var(--accent-hover); border:1px solid rgba(76,124,240,0.3);
-    font-size:12.5px; font-weight:600; cursor:pointer; transition:background .15s ease;
+    font-size:12.5px; font-weight:600; cursor:pointer; transition:background .15s ease; flex-shrink:0;
   }
   .planner-add-btn:hover{background:rgba(76,124,240,0.22);}
   .planner-add-btn svg{width:14px; height:14px;}
 
-  .planner-list{display:flex; flex-direction:column; gap:10px; position:relative;}
+  .planner-list{
+    display:flex; flex-direction:row; gap:14px; position:relative;
+    overflow-x:auto; padding-bottom:6px;
+  }
+  .planner-list::-webkit-scrollbar{height:6px;}
+  .planner-list::-webkit-scrollbar-thumb{background:var(--border); border-radius:10px;}
+
   .planner-event{
-    display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:11px;
+    flex:0 0 240px; display:flex; flex-direction:column; gap:10px;
+    padding:14px 16px; border-radius:11px;
     background:var(--bg-elevated); border:1px solid var(--border-soft);
     transition:transform .15s ease;
   }
-  .planner-event:hover{transform:translateX(2px);}
+  .planner-event:hover{transform:translateY(-2px);}
   .planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
   .planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
   .planner-event.glow-yellow{border-color:rgba(240,224,76,0.4); box-shadow:0 0 18px -6px rgba(240,224,76,0.5);}
   .planner-event.glow-green{border-color:rgba(51,214,166,0.4); box-shadow:0 0 18px -6px rgba(51,214,166,0.5);}
 
+  .planner-event-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .planner-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
   .planner-dot.glow-red{background:var(--danger); box-shadow:0 0 10px 2px rgba(240,102,76,0.7);}
   .planner-dot.glow-orange{background:var(--warning); box-shadow:0 0 10px 2px rgba(240,184,76,0.7);}
   .planner-dot.glow-yellow{background:#f0e04c; box-shadow:0 0 10px 2px rgba(240,224,76,0.7);}
   .planner-dot.glow-green{background:var(--success); box-shadow:0 0 10px 2px rgba(51,214,166,0.7);}
 
-  .planner-event-body{flex:1; min-width:0;}
-  .planner-event-title{font-size:13.5px; font-weight:600; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .planner-event-meta{font-size:11.5px; color:var(--text-muted); margin-top:2px;}
   .planner-event-date{
-    font-family:'JetBrains Mono'; font-size:12px; color:var(--text-secondary); flex-shrink:0; text-align:right;
+    font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-secondary); flex-shrink:0;
   }
-  .planner-event-date .day{display:block; font-weight:700; color:var(--text-primary); font-size:13px;}
+  .planner-event-date .day{font-weight:700; color:var(--text-primary);}
+
+  .planner-event-title{
+    font-size:13.5px; font-weight:600; color:var(--text-primary);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .planner-event-meta{font-size:11px; color:var(--text-muted);}
+
+  .planner-event-footer{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .planner-del-btn{
-    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+    width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center;
     background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer; flex-shrink:0;
-    transition:background .12s ease, color .12s ease;
+    transition:background .12s ease, color .12s ease; margin-left:auto;
   }
   .planner-del-btn:hover{background:var(--panel); color:var(--danger);}
-  .planner-del-btn svg{width:13px; height:13px;}
+  .planner-del-btn svg{width:12px; height:12px;}
 
-  .planner-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;}
+  .planner-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:16px 0; flex:1;}
 
   /* Drawer / overlay / toast (shared pattern) */
   .overlay{
@@ -243,38 +250,13 @@
   @media (max-width:640px){
     .grid{grid-template-columns:1fr;}
     .wrap{padding:44px 20px 24px;}
-    .planner-tile{width:100%;}
+    .planner-event{flex:0 0 200px;}
   }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <div class="top-section">
-    <div class="hero">
-      <div class="brand-mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
-      </div>
-      <h1>Household Manager</h1>
-      <p>The family's shared home for payments, documents, and everything worth keeping track of.</p>
-    </div>
-
-    <div class="planner-tile">
-      <div class="planner-header">
-        <div>
-          <h2>Upcoming</h2>
-          <p>Appointments, reminders, birthdays, and events for the family.</p>
-        </div>
-        <button class="planner-add-btn" id="plannerAddBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          Add
-        </button>
-      </div>
-      <div class="planner-list" id="plannerList"></div>
-    </div>
-  </div>
-
-  <div class="ledger-stitch"></div>
 
   <div class="grid">
     <a href="payments.html" class="card live payments">
@@ -380,6 +362,31 @@
     </a>
     
   </div>
+
+  <div class="ledger-stitch"></div>
+
+  <div class="planner-tile">
+    <div class="planner-header">
+      <div>
+        <h2>Upcoming</h2>
+        <p>Appointments, reminders, birthdays, and events for the family.</p>
+      </div>
+      <button class="planner-add-btn" id="plannerAddBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Add
+      </button>
+    </div>
+    <div class="planner-list" id="plannerList"></div>
+  </div>
+
+  <div class="hero">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
+    </div>
+    <h1>Household Manager</h1>
+    <p>The family's shared home for payments, documents, and everything worth keeping track of.</p>
+  </div>
+
 </div>
 
 <footer class="note">Household Manager · v1.3 ·</footer>
@@ -444,7 +451,6 @@
   };
 
   let events = [];
-  let editingId = null;
 
   function showToast(msg){
     const toast = el('toast');
@@ -482,7 +488,7 @@
       .select('*')
       .gte('event_date', new Date(Date.now() - 86400000).toISOString().slice(0,10))
       .order('event_date', { ascending: true })
-      .limit(8);
+      .limit(12);
     if(error){ showToast('Error loading events'); console.error(error); return; }
     events = data;
     render();
@@ -499,18 +505,17 @@
       const { day, weekday } = formatEventDate(e.event_date);
       return `
         <div class="planner-event ${glow}">
-          <div class="planner-dot ${glow}"></div>
-          <div class="planner-event-body">
-            <div class="planner-event-title">${escapeHtml(e.title)}</div>
-            <div class="planner-event-meta">${escapeHtml(e.category)}${e.event_time ? ' · ' + e.event_time.slice(0,5) : ''} · ${relativeLabel(e.event_date)}</div>
+          <div class="planner-event-top">
+            <div class="planner-dot ${glow}"></div>
+            <div class="planner-event-date"><span class="day">${day}</span> · ${weekday}</div>
           </div>
-          <div class="planner-event-date">
-            <span class="day">${day}</span>
-            ${weekday}
+          <div class="planner-event-title">${escapeHtml(e.title)}</div>
+          <div class="planner-event-meta">${escapeHtml(e.category)}${e.event_time ? ' · ' + e.event_time.slice(0,5) : ''} · ${relativeLabel(e.event_date)}</div>
+          <div class="planner-event-footer">
+            <button class="planner-del-btn" data-del="${e.id}" aria-label="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+            </button>
           </div>
-          <button class="planner-del-btn" data-del="${e.id}" aria-label="Delete">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
-          </button>
         </div>
       `;
     }).join('');
@@ -527,7 +532,6 @@
   });
 
   function openDrawer(){
-    editingId = null;
     el('drawerTitle').textContent = 'Add Event';
     el('editId').value = '';
     el('fTitle').value = '';
