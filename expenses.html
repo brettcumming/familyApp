@@ -531,107 +531,10 @@
 
 <script>
 (function(){
-  const MANIFEST_NAME = 'expenses.json';
-  const IDB_NAME = 'familyLedgerHandles';
-  const IDB_KEY = 'expensesFolder';
   const el = (id) => document.getElementById(id);
 
-  let dirHandle = null;
   let expenses = [];
   let editingId = null;
-
-  function idbOpen(){
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbGet(key){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbSet(key, value){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  if(!('showDirectoryPicker' in window)){
-    el('supportWarning').style.display = 'block';
-    el('connectBtn').disabled = true;
-  }
-
-  async function readManifest(){
-    try{
-      const fh = await dirHandle.getFileHandle(MANIFEST_NAME);
-      const file = await fh.getFile();
-      return JSON.parse(await file.text());
-    }catch(e){ return null; }
-  }
-  async function writeManifest(){
-    const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
-    const writable = await fh.createWritable();
-    await writable.write(JSON.stringify(expenses, null, 2));
-    await writable.close();
-  }
-
-  async function connectFolder(){
-    try{
-      dirHandle = await window.showDirectoryPicker();
-      await idbSet(IDB_KEY, dirHandle);
-      await afterConnect();
-    }catch(e){ /* cancelled */ }
-  }
-  async function afterConnect(){
-    el('connectWrap').style.display = 'none';
-    el('vaultWrap').style.display = 'block';
-    el('folderName').textContent = dirHandle.name;
-    const existing = await readManifest();
-    expenses = existing === null ? [] : existing;
-    if(existing === null) await writeManifest();
-    render();
-  }
-  async function tryAutoReconnect(){
-    let stored;
-    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
-    if(!stored) return;
-    try{
-      const perm = await stored.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){
-        dirHandle = stored;
-        await afterConnect();
-      } else {
-        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
-        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue.`;
-        el('connectBtn').textContent = 'Reconnect Folder';
-        el('connectBtn').onclick = async () => {
-          const p = await stored.requestPermission({mode:'readwrite'});
-          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
-        };
-      }
-    }catch(e){ /* fall back to normal connect */ }
-  }
-
-  el('connectBtn').addEventListener('click', connectFolder);
-  el('changeFolderBtn').addEventListener('click', () => {
-    el('vaultWrap').style.display = 'none';
-    el('connectWrap').style.display = 'block';
-    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
-    el('connectWrap').querySelector('p').innerHTML = 'Pick a folder on this PC — your expenses will be saved to an <code>expenses.json</code> file there. You can reuse the same folder as your other modules, or choose a new one.';
-    el('connectBtn').textContent = 'Choose Folder';
-    el('connectBtn').onclick = connectFolder;
-  });
 
   function currency(n){
     return 'R' + Number(n).toLocaleString('en-ZA', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -648,6 +551,26 @@
   }
   function escapeHtml(str){
     return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function showToast(msg){
+    const toast = el('toast');
+    el('toastText').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  async function loadExpenses(){
+    const { data, error } = await supabaseClient
+      .from('expenses')
+      .select('*')
+      .order('expense_date', { ascending: false });
+    if(error){ showToast('Error loading expenses'); console.error(error); return; }
+    expenses = data.map(e => ({
+      id: e.id, description: e.description, amount: e.amount,
+      date: e.expense_date, category: e.category, notes: e.notes
+    }));
+    render();
   }
 
   function refreshMonthOptions(){
@@ -783,14 +706,6 @@
     editingId = null;
   }
 
-  function showToast(msg){
-    const toast = el('toast');
-    el('toastText').textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
-  }
-
   el('saveBtn').addEventListener('click', async () => {
     const description = el('fDesc').value.trim();
     const amount = parseFloat(el('fAmount').value);
@@ -799,34 +714,31 @@
     const data = {
       description,
       amount,
-      date: el('fDate').value,
+      expense_date: el('fDate').value || null,
       category: el('fCategory').value,
       notes: el('fNotes').value.trim()
     };
+
+    let error;
     if(editingId){
-      expenses = expenses.map(e => e.id === editingId ? {...e, ...data} : e);
-      showToast('Expense updated');
+      ({ error } = await supabaseClient.from('expenses').update(data).eq('id', editingId));
     } else {
-      expenses.push({id: crypto.randomUUID(), ...data});
-      showToast('Expense added');
+      ({ error } = await supabaseClient.from('expenses').insert(data));
     }
-    try {
-      await writeManifest();
-      closeDrawer();
-      render();
-    } catch(err) {
-      console.error("Save failed:", err);
-      showToast("Save failed - folder access lost");
-    }
+    if(error){ showToast('Save failed'); console.error(error); return; }
+
+    showToast(editingId ? 'Expense updated' : 'Expense added');
+    closeDrawer();
+    await loadExpenses();
   });
 
   async function handleDelete(id){
     const target = expenses.find(e => e.id === id);
     if(!target) return;
     if(!confirm(`Remove "${target.description}"? This can't be undone.`)) return;
-    expenses = expenses.filter(e => e.id !== id);
-    await writeManifest();
-    render();
+    const { error } = await supabaseClient.from('expenses').delete().eq('id', id);
+    if(error){ showToast('Delete failed'); console.error(error); return; }
+    await loadExpenses();
     showToast('Expense removed');
   }
 
@@ -867,7 +779,7 @@
 
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
 
-  tryAutoReconnect();
+  loadExpenses();
 })();
 </script>
 </body>
