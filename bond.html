@@ -535,112 +535,11 @@
 
 <script>
 (function(){
-  const MANIFEST_NAME = 'bond.json';
-  const IDB_NAME = 'familyLedgerHandles';
-  const IDB_KEY = 'bondFolder';
   const el = (id) => document.getElementById(id);
 
-  let dirHandle = null;
-  let data = { settings: { name: '', originalAmount: 0, monthlyInstallment: 0 }, payments: [] };
+  let settings = { name: '', originalAmount: 0, monthlyInstallment: 0 };
+  let payments = [];
   let editingId = null;
-
-  function idbOpen(){
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains('handles')) req.result.createObjectStore('handles'); };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbGet(key){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readonly');
-      const req = tx.objectStore('handles').get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  async function idbSet(key, value){
-    const db = await idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('handles', 'readwrite');
-      tx.objectStore('handles').put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  if(!('showDirectoryPicker' in window)){
-    el('supportWarning').style.display = 'block';
-    el('connectBtn').disabled = true;
-  }
-
-  async function readManifest(){
-    try{
-      const fh = await dirHandle.getFileHandle(MANIFEST_NAME);
-      const file = await fh.getFile();
-      return JSON.parse(await file.text());
-    }catch(e){ return null; }
-  }
-  async function writeManifest(){
-    const fh = await dirHandle.getFileHandle(MANIFEST_NAME, {create:true});
-    const writable = await fh.createWritable();
-    await writable.write(JSON.stringify(data, null, 2));
-    await writable.close();
-  }
-
-  async function connectFolder(){
-    try{
-      dirHandle = await window.showDirectoryPicker();
-      await idbSet(IDB_KEY, dirHandle);
-      await afterConnect();
-    }catch(e){ /* cancelled */ }
-  }
-  async function afterConnect(){
-    el('connectWrap').style.display = 'none';
-    el('vaultWrap').style.display = 'block';
-    el('folderName').textContent = dirHandle.name;
-    const existing = await readManifest();
-    if(existing === null){
-      await writeManifest();
-    } else {
-      data = existing;
-      data.settings = data.settings || { name: '', originalAmount: 0, monthlyInstallment: 0 };
-      data.payments = data.payments || [];
-    }
-    render();
-  }
-  async function tryAutoReconnect(){
-    let stored;
-    try{ stored = await idbGet(IDB_KEY); }catch(e){ stored = null; }
-    if(!stored) return;
-    try{
-      const perm = await stored.queryPermission({mode:'readwrite'});
-      if(perm === 'granted'){
-        dirHandle = stored;
-        await afterConnect();
-      } else {
-        el('connectWrap').querySelector('h2').textContent = 'Reconnect your folder';
-        el('connectWrap').querySelector('p').textContent = `Give access to "${stored.name}" again to continue.`;
-        el('connectBtn').textContent = 'Reconnect Folder';
-        el('connectBtn').onclick = async () => {
-          const p = await stored.requestPermission({mode:'readwrite'});
-          if(p === 'granted'){ dirHandle = stored; await afterConnect(); }
-        };
-      }
-    }catch(e){ /* fall back to normal connect */ }
-  }
-
-  el('connectBtn').addEventListener('click', connectFolder);
-  el('changeFolderBtn').addEventListener('click', () => {
-    el('vaultWrap').style.display = 'none';
-    el('connectWrap').style.display = 'block';
-    el('connectWrap').querySelector('h2').textContent = 'Connect a folder';
-    el('connectWrap').querySelector('p').innerHTML = 'Pick a folder on this PC — your bond payments will be saved to a <code>bond.json</code> file there. You can reuse the same folder as your other modules, or choose a new one.';
-    el('connectBtn').textContent = 'Choose Folder';
-    el('connectBtn').onclick = connectFolder;
-  });
 
   function currency(n){
     return 'R' + Number(n||0).toLocaleString('en-ZA', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -653,16 +552,42 @@
   function escapeHtml(str){
     return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
   }
+  function showToast(msg){
+    const toast = el('toast');
+    el('toastText').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  async function loadAll(){
+    const [{ data: settingsRow, error: settingsErr }, { data: paymentsData, error: paymentsErr }] = await Promise.all([
+      supabaseClient.from('bond_settings').select('*').eq('id', 1).maybeSingle(),
+      supabaseClient.from('bond_payments').select('*').order('payment_date', { ascending: false })
+    ]);
+    if(settingsErr){ showToast('Error loading bond details'); console.error(settingsErr); }
+    if(settingsRow){
+      settings = {
+        name: settingsRow.name || '',
+        originalAmount: settingsRow.original_amount || 0,
+        monthlyInstallment: settingsRow.monthly_installment || 0
+      };
+    }
+    if(paymentsErr){ showToast('Error loading payments'); console.error(paymentsErr); return; }
+    payments = paymentsData.map(p => ({
+      id: p.id, type: p.type, amount: p.amount, date: p.payment_date, notes: p.notes
+    }));
+    render();
+  }
 
   function computeStats(){
-    const payments = data.payments;
     const totalPaid = payments.reduce((a,p) => a + Number(p.amount||0), 0);
     const totalExtra = payments.filter(p => p.type === 'Extra Payment').reduce((a,p) => a + Number(p.amount||0), 0);
 
-    if(data.settings.originalAmount > 0){
-      const balance = data.settings.originalAmount - totalExtra;
+    if(settings.originalAmount > 0){
+      const balance = settings.originalAmount - totalExtra;
       el('statBalance').textContent = currency(balance);
-      el('statBalanceSub').textContent = data.settings.name || 'Estimated — extra payments only';
+      el('statBalanceSub').textContent = settings.name || 'Estimated — extra payments only';
     } else {
       el('statBalance').textContent = '—';
       el('statBalanceSub').textContent = 'Set bond details to track this';
@@ -681,8 +606,8 @@
       monthCard.classList.add('paid');
     } else {
       el('statMonth').textContent = 'Not Paid';
-      el('statMonthSub').textContent = data.settings.monthlyInstallment > 0
-        ? `Expected: ${currency(data.settings.monthlyInstallment)}`
+      el('statMonthSub').textContent = settings.monthlyInstallment > 0
+        ? `Expected: ${currency(settings.monthlyInstallment)}`
         : 'No installment logged this month';
       monthCard.classList.remove('paid');
     }
@@ -692,7 +617,7 @@
     const q = el('searchInput').value.trim().toLowerCase();
     const type = el('typeFilter').value;
     const sort = el('sortFilter').value;
-    let list = data.payments.filter(p => {
+    let list = payments.filter(p => {
       const matchesQ = !q || (p.notes||'').toLowerCase().includes(q);
       const matchesType = type === 'all' || p.type === type;
       return matchesQ && matchesType;
@@ -745,7 +670,7 @@
     el('drawerTitle').textContent = payment ? 'Edit Payment' : 'Add Payment';
     el('editId').value = payment ? payment.id : '';
     el('fType').value = payment ? payment.type : 'Monthly Installment';
-    el('fAmount').value = payment ? payment.amount : (data.settings.monthlyInstallment || '');
+    el('fAmount').value = payment ? payment.amount : (settings.monthlyInstallment || '');
     el('fDate').value = payment ? payment.date : new Date().toISOString().slice(0,10);
     el('fNotes').value = payment ? (payment.notes||'') : '';
     el('drawer').classList.add('show');
@@ -758,42 +683,36 @@
     editingId = null;
   }
 
-  function showToast(msg){
-    const toast = el('toast');
-    el('toastText').textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
-  }
-
   el('saveBtn').addEventListener('click', async () => {
     const amount = parseFloat(el('fAmount').value);
     if(isNaN(amount) || amount <= 0){ el('fAmount').focus(); return; }
     const payload = {
       type: el('fType').value,
       amount,
-      date: el('fDate').value,
+      payment_date: el('fDate').value || null,
       notes: el('fNotes').value.trim()
     };
+
+    let error;
     if(editingId){
-      data.payments = data.payments.map(p => p.id === editingId ? {...p, ...payload} : p);
-      showToast('Payment updated');
+      ({ error } = await supabaseClient.from('bond_payments').update(payload).eq('id', editingId));
     } else {
-      data.payments.push({id: crypto.randomUUID(), ...payload});
-      showToast('Payment added');
+      ({ error } = await supabaseClient.from('bond_payments').insert(payload));
     }
-    await writeManifest();
+    if(error){ showToast('Save failed'); console.error(error); return; }
+
+    showToast(editingId ? 'Payment updated' : 'Payment added');
     closeDrawer();
-    render();
+    await loadAll();
   });
 
   async function handleDelete(id){
-    const target = data.payments.find(p => p.id === id);
+    const target = payments.find(p => p.id === id);
     if(!target) return;
     if(!confirm(`Remove this ${target.type.toLowerCase()} of ${currency(target.amount)}? This can't be undone.`)) return;
-    data.payments = data.payments.filter(p => p.id !== id);
-    await writeManifest();
-    render();
+    const { error } = await supabaseClient.from('bond_payments').delete().eq('id', id);
+    if(error){ showToast('Delete failed'); console.error(error); return; }
+    await loadAll();
     showToast('Payment removed');
   }
 
@@ -821,7 +740,7 @@
     const editBtn = e.target.closest('[data-edit]');
     const delBtn = e.target.closest('[data-del]');
     if(editBtn){
-      const item = data.payments.find(x => x.id === editBtn.dataset.edit);
+      const item = payments.find(x => x.id === editBtn.dataset.edit);
       if(item) openDrawer(item);
     }
     if(delBtn){ handleDelete(delBtn.dataset.del); }
@@ -834,9 +753,9 @@
 
   // ---- Bond Details drawer ----
   function openDetailsDrawer(){
-    el('sName').value = data.settings.name || '';
-    el('sOriginal').value = data.settings.originalAmount || '';
-    el('sInstallment').value = data.settings.monthlyInstallment || '';
+    el('sName').value = settings.name || '';
+    el('sOriginal').value = settings.originalAmount || '';
+    el('sInstallment').value = settings.monthlyInstallment || '';
     el('detailsDrawer').classList.add('show');
     el('overlay').classList.add('show');
     setTimeout(() => el('sName').focus(), 200);
@@ -849,12 +768,21 @@
   el('detailsClose').addEventListener('click', closeDetailsDrawer);
   el('detailsCancelBtn').addEventListener('click', closeDetailsDrawer);
   el('detailsSaveBtn').addEventListener('click', async () => {
-    data.settings = {
+    const payload = {
+      id: 1,
       name: el('sName').value.trim(),
-      originalAmount: parseFloat(el('sOriginal').value) || 0,
-      monthlyInstallment: parseFloat(el('sInstallment').value) || 0
+      original_amount: parseFloat(el('sOriginal').value) || 0,
+      monthly_installment: parseFloat(el('sInstallment').value) || 0,
+      updated_at: new Date().toISOString()
     };
-    await writeManifest();
+    const { error } = await supabaseClient.from('bond_settings').upsert(payload);
+    if(error){ showToast('Could not save bond details'); console.error(error); return; }
+
+    settings = {
+      name: payload.name,
+      originalAmount: payload.original_amount,
+      monthlyInstallment: payload.monthly_installment
+    };
     closeDetailsDrawer();
     render();
     showToast('Bond details saved');
@@ -867,7 +795,7 @@
     }
   });
 
-  tryAutoReconnect();
+  loadAll();
 })();
 </script>
 </body>
