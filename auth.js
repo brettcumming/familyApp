@@ -1,22 +1,7 @@
-
-     /*  crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
-         .then(buf => console.log(Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''))); */
-
 (function () {
-  const AUTH_KEY = 'familyLedgerAuthed';
-  const USERNAME = 'family';
-  const PASSWORD_HASH = 'a4a6326871ed4fd887fca327c377479d8247796d8c0f9031f50d36afa53c57de';
+  const el = (id) => document.getElementById(id);
 
-  async function sha256Hex(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  function isAuthed() {
-    return localStorage.getItem(AUTH_KEY) === 'true';
-  }
-
-  function injectOverlay() {
+  function injectOverlay(message) {
     const style = document.createElement('style');
     style.textContent = `
       #familyLockOverlay{
@@ -73,42 +58,46 @@
           </svg>
         </div>
         <h2>Household Manager</h2>
-        <p>Enter your username and password to continue.</p>
-        <div class="err" id="lockErr">Incorrect username or password.</div>
-        <label for="lockUser">Username</label>
-        <input type="text" id="lockUser" autocomplete="username">
+        <p>Sign in to continue.</p>
+        <div class="err" id="lockErr">${message || 'Incorrect email or password.'}</div>
+        <label for="lockUser">Email</label>
+        <input type="email" id="lockUser" autocomplete="username">
         <label for="lockPass">Password</label>
         <input type="password" id="lockPass" autocomplete="current-password">
-        <button id="lockSubmit">Unlock</button>
+        <button id="lockSubmit">Sign In</button>
       </div>
     `;
     document.body.appendChild(overlay);
 
     async function tryUnlock() {
-      const u = document.getElementById('lockUser').value.trim();
-      const p = document.getElementById('lockPass').value;
-      const hash = await sha256Hex(p);
-      if (u === USERNAME && hash === PASSWORD_HASH) {
-        localStorage.setItem(AUTH_KEY, 'true');
+      const email = el('lockUser').value.trim();
+      const password = el('lockPass').value;
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        el('lockErr').textContent = error.message;
+        el('lockErr').style.display = 'block';
+      } else {
         document.body.style.visibility = 'visible';
         overlay.remove();
-      } else {
-        document.getElementById('lockErr').style.display = 'block';
       }
     }
     document.getElementById('lockSubmit').addEventListener('click', tryUnlock);
     overlay.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryUnlock(); });
-    setTimeout(() => {
-      const first = document.getElementById('lockUser');
-      if (first) first.focus();
-    }, 50);
+    setTimeout(() => { const f = el('lockUser'); if (f) f.focus(); }, 50);
   }
 
-  if (isAuthed()) {
-    document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
       document.body.style.visibility = 'visible';
-    });
-  } else {
-    document.addEventListener('DOMContentLoaded', injectOverlay);
-  }
+    } else {
+      injectOverlay();
+    }
+  });
+
+  supabaseClient.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+      window.location.reload();
+    }
+  });
 })();
