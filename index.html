@@ -80,10 +80,10 @@
   }
 
   .grid{
-    display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; width:100%;
+    display:grid; grid-template-columns:repeat(8, 1fr); gap:12px; width:100%;
   }
   .card{    
-    height:185px;
+    height:165px;
     position:relative; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
     border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:22px;
     display:flex; flex-direction:column; gap:11px; transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
@@ -278,9 +278,7 @@
       </button>
     </div>
     <div class="planner-list" id="plannerList"></div>
-  </div>
-
-  <div class="ledger-stitch"></div>
+  </div>  
 
   <div class="grid">
     <a href="payments.html" class="card live payments">
