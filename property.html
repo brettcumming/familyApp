@@ -1101,6 +1101,10 @@
   });
   ideaFileInput.addEventListener('change', () => handleIdeaFiles(ideaFileInput.files));
 
+  el('addProjectBtn').addEventListener('click', () => {
+    openDrawer(null);
+  });
+
   async function handleIdeaFiles(fileList){
     for(const file of Array.from(fileList)){
       if(file.size > 50 * 1024 * 1024){ showToast(`${file.name} is over 50MB — skipped`); continue; }
