@@ -126,7 +126,7 @@
 
   footer.note{color:var(--text-muted); font-size:12px; text-align:center; padding:20px 0 32px;}
 
-  /* Planner tile — sits between the card grid and the hero title, grows horizontally */
+  /* Planner tile — sits between the hero and the card grid, grows horizontally */
   .planner-tile{
     width:100%; margin-bottom:40px;
     background:linear-gradient(160deg, var(--panel), var(--panel-alt));
@@ -258,6 +258,30 @@
 
 <div class="wrap">
 
+  <div class="hero">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
+    </div>
+    <h1>Household Manager</h1>
+    <p>The family's shared home for payments, documents, and everything worth keeping track of.</p>
+  </div>
+
+  <div class="planner-tile">
+    <div class="planner-header">
+      <div>
+        <h2>Upcoming</h2>
+        <p>Appointments, reminders, birthdays, and events for the family.</p>
+      </div>
+      <button class="planner-add-btn" id="plannerAddBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Add
+      </button>
+    </div>
+    <div class="planner-list" id="plannerList"></div>
+  </div>
+
+  <div class="ledger-stitch"></div>
+
   <div class="grid">
     <a href="payments.html" class="card live payments">
       <div class="card-top">
@@ -361,30 +385,6 @@
       <div class="card-stat"></div>      
     </a>
     
-  </div>
-
-  <div class="ledger-stitch"></div>
-
-  <div class="planner-tile">
-    <div class="planner-header">
-      <div>
-        <h2>Upcoming</h2>
-        <p>Appointments, reminders, birthdays, and events for the family.</p>
-      </div>
-      <button class="planner-add-btn" id="plannerAddBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-        Add
-      </button>
-    </div>
-    <div class="planner-list" id="plannerList"></div>
-  </div>
-
-  <div class="hero">
-    <div class="brand-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#eaf0fb" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12.5l2 2 4-4.5"/></svg>
-    </div>
-    <h1>Household Manager</h1>
-    <p>The family's shared home for payments, documents, and everything worth keeping track of.</p>
   </div>
 
 </div>
