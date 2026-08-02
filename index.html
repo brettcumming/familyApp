@@ -82,6 +82,115 @@
   .grid{
     display:grid; grid-template-columns:repeat(5, 1fr); gap:20px; width:100%;
   }
+
+  /* Planner tile */
+.planner-tile{
+  margin-top:24px;
+  background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+  border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+  padding:24px; position:relative; overflow:hidden;
+}
+.planner-tile::before{
+  content:""; position:absolute; top:-40%; right:-10%; width:280px; height:280px;
+  background:radial-gradient(circle, rgba(76,124,240,0.16), transparent 70%);
+  pointer-events:none;
+}
+.planner-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; position:relative;}
+.planner-header h2{font-size:17px; margin:0; font-weight:700;}
+.planner-header p{margin:2px 0 0; font-size:12.5px; color:var(--text-secondary);}
+.planner-add-btn{
+  display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:9px;
+  background:var(--accent-soft); color:var(--accent-hover); border:1px solid rgba(76,124,240,0.3);
+  font-size:12.5px; font-weight:600; cursor:pointer; transition:background .15s ease;
+}
+.planner-add-btn:hover{background:rgba(76,124,240,0.22);}
+.planner-add-btn svg{width:14px; height:14px;}
+
+.planner-list{display:flex; flex-direction:column; gap:10px; position:relative;}
+.planner-event{
+  display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:11px;
+  background:var(--bg-elevated); border:1px solid var(--border-soft);
+  transition:transform .15s ease;
+}
+.planner-event:hover{transform:translateX(2px);}
+.planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
+.planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
+.planner-event.glow-yellow{border-color:rgba(240,224,76,0.4); box-shadow:0 0 18px -6px rgba(240,224,76,0.5);}
+.planner-event.glow-green{border-color:rgba(51,214,166,0.4); box-shadow:0 0 18px -6px rgba(51,214,166,0.5);}
+
+.planner-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+.planner-dot.glow-red{background:var(--danger); box-shadow:0 0 10px 2px rgba(240,102,76,0.7);}
+.planner-dot.glow-orange{background:var(--warning); box-shadow:0 0 10px 2px rgba(240,184,76,0.7);}
+.planner-dot.glow-yellow{background:#f0e04c; box-shadow:0 0 10px 2px rgba(240,224,76,0.7);}
+.planner-dot.glow-green{background:var(--success); box-shadow:0 0 10px 2px rgba(51,214,166,0.7);}
+
+.planner-event-body{flex:1; min-width:0;}
+.planner-event-title{font-size:13.5px; font-weight:600; color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.planner-event-meta{font-size:11.5px; color:var(--text-muted); margin-top:2px;}
+.planner-event-date{
+  font-family:'JetBrains Mono'; font-size:12px; color:var(--text-secondary); flex-shrink:0; text-align:right;
+}
+.planner-event-date .day{display:block; font-weight:700; color:var(--text-primary); font-size:13px;}
+.planner-del-btn{
+  width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+  background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer; flex-shrink:0;
+  transition:background .12s ease, color .12s ease;
+}
+.planner-del-btn:hover{background:var(--panel); color:var(--danger);}
+.planner-del-btn svg{width:13px; height:13px;}
+
+.planner-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;}
+
+/* Reuse the same drawer/overlay pattern as other pages */
+.overlay{
+  position:fixed; inset:0; background:rgba(4,7,16,0.6); backdrop-filter:blur(2px);
+  opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;
+}
+.overlay.show{opacity:1; pointer-events:auto;}
+.drawer{
+  position:fixed; top:0; right:0; bottom:0; width:420px; max-width:92vw;
+  background:linear-gradient(180deg, var(--bg-elevated), var(--bg));
+  border-left:1px solid var(--border); box-shadow:var(--shadow-lift);
+  transform:translateX(100%); transition:transform .25s cubic-bezier(.4,0,.2,1);
+  z-index:50; display:flex; flex-direction:column; text-align:left;
+}
+.drawer.show{transform:translateX(0);}
+.drawer-header{
+  padding:22px 24px; border-bottom:1px solid var(--border-soft);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.drawer-header h2{font-size:17px; margin:0; font-weight:700;}
+.drawer-close{
+  width:30px; height:30px; border-radius:8px; background:var(--panel); border:1px solid var(--border);
+  color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.drawer-close:hover{color:var(--text-primary);}
+.drawer-body{padding:22px 24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:16px;}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:7px; text-align:left;}
+.field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+input, select{
+  background:var(--panel); border:1px solid var(--border); color:var(--text-primary);
+  padding:9px 12px; border-radius:9px; font-size:13.5px; width:100%; font-family:inherit;
+}
+select{cursor:pointer;}
+.drawer-footer{padding:18px 24px; border-top:1px solid var(--border-soft); display:flex; gap:10px;}
+.drawer-footer .btn{flex:1; justify-content:center;}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:10px;
+  border:1px solid transparent; font-size:13.5px; font-weight:600; cursor:pointer;
+}
+.btn-primary{background:linear-gradient(155deg, var(--accent-hover), var(--accent)); color:#08101f;}
+.btn-ghost{background:var(--panel); color:var(--text-secondary); border-color:var(--border);}
+
+.toast{
+  position:fixed; bottom:26px; right:26px; background:var(--panel-alt); border:1px solid var(--border);
+  padding:13px 18px; border-radius:10px; font-size:13.5px; display:flex; align-items:center; gap:10px;
+  box-shadow:var(--shadow-lift); transform:translateY(20px); opacity:0; transition:all .25s ease; z-index:60;
+  text-align:left;
+}
+.toast.show{transform:translateY(0); opacity:1;}
+.toast svg{width:16px; height:16px; color:var(--success); flex-shrink:0;}
+  
   .card{    
     height:185px;
     position:relative; background:linear-gradient(160deg, var(--panel), var(--panel-alt));
@@ -249,9 +358,211 @@
     </a>
     
   </div>
+
+<div class="planner-tile">
+  <div class="planner-header">
+    <div>
+      <h2>Upcoming</h2>
+      <p>Appointments, reminders, birthdays, and events for the family.</p>
+    </div>
+    <button class="planner-add-btn" id="plannerAddBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Add
+    </button>
+  </div>
+  <div class="planner-list" id="plannerList"></div>
+</div>
+  
 </div>
 
 <footer class="note">Household Manager · v1.3 ·</footer>
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2 id="drawerTitle">Add Event</h2>
+    <button class="drawer-close" id="drawerClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <input type="hidden" id="editId">
+    <div class="field">
+      <label for="fTitle">Title</label>
+      <input type="text" id="fTitle" placeholder="e.g. Dentist appointment">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="fDate">Date</label>
+        <input type="date" id="fDate">
+      </div>
+      <div class="field">
+        <label for="fTime">Time (optional)</label>
+        <input type="time" id="fTime">
+      </div>
+    </div>
+    <div class="field">
+      <label for="fCategory">Category</label>
+      <select id="fCategory">
+        <option>Appointment</option>
+        <option>Reminder</option>
+        <option>Birthday</option>
+        <option>Event</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fNotes">Notes (optional)</label>
+      <input type="text" id="fNotes" placeholder="Any extra detail…">
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+    <button class="btn btn-primary" id="saveBtn">Save Event</button>
+  </div>
+</div>
 
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+  <span id="toastText">Saved</span>
+</div>
+
+<script>
+(function(){
+  const el = (id) => document.getElementById(id);
+  const CATEGORY_GLOW = {
+    'Appointment': 'glow-red',
+    'Reminder': 'glow-orange',
+    'Birthday': 'glow-yellow',
+    'Event': 'glow-green'
+  };
+
+  let events = [];
+  let editingId = null;
+
+  function showToast(msg){
+    const toast = el('toast');
+    el('toastText').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  function escapeHtml(str){
+    return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+  function formatEventDate(d){
+    const dt = new Date(d + 'T00:00:00');
+    return {
+      day: dt.toLocaleDateString('en-ZA', {day:'2-digit', month:'short'}),
+      weekday: dt.toLocaleDateString('en-ZA', {weekday:'short'})
+    };
+  }
+  function daysUntil(d){
+    const today = new Date(new Date().toDateString());
+    const target = new Date(d + 'T00:00:00');
+    return Math.round((target - today) / 86400000);
+  }
+  function relativeLabel(d){
+    const diff = daysUntil(d);
+    if(diff === 0) return 'Today';
+    if(diff === 1) return 'Tomorrow';
+    if(diff < 0) return `${Math.abs(diff)} day${Math.abs(diff)===1?'':'s'} ago`;
+    return `In ${diff} days`;
+  }
+
+  async function loadEvents(){
+    const { data, error } = await supabaseClient
+      .from('calendar_events')
+      .select('*')
+      .gte('event_date', new Date(Date.now() - 86400000).toISOString().slice(0,10))
+      .order('event_date', { ascending: true })
+      .limit(8);
+    if(error){ showToast('Error loading events'); console.error(error); return; }
+    events = data;
+    render();
+  }
+
+  function render(){
+    const list = el('plannerList');
+    if(events.length === 0){
+      list.innerHTML = '<div class="planner-empty">Nothing coming up — click Add to schedule something.</div>';
+      return;
+    }
+    list.innerHTML = events.map(e => {
+      const glow = CATEGORY_GLOW[e.category] || 'glow-orange';
+      const { day, weekday } = formatEventDate(e.event_date);
+      return `
+        <div class="planner-event ${glow}">
+          <div class="planner-dot ${glow}"></div>
+          <div class="planner-event-body">
+            <div class="planner-event-title">${escapeHtml(e.title)}</div>
+            <div class="planner-event-meta">${escapeHtml(e.category)}${e.event_time ? ' · ' + e.event_time.slice(0,5) : ''} · ${relativeLabel(e.event_date)}</div>
+          </div>
+          <div class="planner-event-date">
+            <span class="day">${day}</span>
+            ${weekday}
+          </div>
+          <button class="planner-del-btn" data-del="${e.id}" aria-label="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+          </button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  el('plannerList').addEventListener('click', async (e) => {
+    const delBtn = e.target.closest('[data-del]');
+    if(!delBtn) return;
+    if(!confirm('Remove this event? This can\'t be undone.')) return;
+    const { error } = await supabaseClient.from('calendar_events').delete().eq('id', delBtn.dataset.del);
+    if(error){ showToast('Could not delete event'); console.error(error); return; }
+    await loadEvents();
+    showToast('Event removed');
+  });
+
+  function openDrawer(){
+    editingId = null;
+    el('drawerTitle').textContent = 'Add Event';
+    el('editId').value = '';
+    el('fTitle').value = '';
+    el('fDate').value = new Date().toISOString().slice(0,10);
+    el('fTime').value = '';
+    el('fCategory').value = 'Appointment';
+    el('fNotes').value = '';
+    el('drawer').classList.add('show');
+    el('overlay').classList.add('show');
+    setTimeout(() => el('fTitle').focus(), 200);
+  }
+  function closeDrawer(){
+    el('drawer').classList.remove('show');
+    el('overlay').classList.remove('show');
+  }
+
+  el('plannerAddBtn').addEventListener('click', openDrawer);
+  el('drawerClose').addEventListener('click', closeDrawer);
+  el('cancelBtn').addEventListener('click', closeDrawer);
+  el('overlay').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && el('drawer').classList.contains('show')) closeDrawer(); });
+
+  el('saveBtn').addEventListener('click', async () => {
+    const title = el('fTitle').value.trim();
+    const date = el('fDate').value;
+    if(!title){ el('fTitle').focus(); return; }
+    if(!date){ el('fDate').focus(); return; }
+    const payload = {
+      title,
+      event_date: date,
+      event_time: el('fTime').value || null,
+      category: el('fCategory').value,
+      notes: el('fNotes').value.trim()
+    };
+    const { error } = await supabaseClient.from('calendar_events').insert(payload);
+    if(error){ showToast('Could not save event'); console.error(error); return; }
+    showToast('Event added');
+    closeDrawer();
+    await loadEvents();
+  });
+
+  loadEvents();
+})();
+</script>
 </body>
 </html>
