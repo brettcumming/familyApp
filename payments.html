@@ -317,18 +317,35 @@
     .main{padding:24px 18px 50px;}
     .stats{grid-template-columns:1fr 1fr;}
     .field-row{grid-template-columns:1fr;}
-  }
 
-  @media (max-width:640px){
-    .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
-    table{min-width:640px;}
-    .filters{flex-direction:column; align-items:stretch;}
-    .search-wrap{min-width:0; width:100%;}
-    select{min-width:0; width:100%;}
-  }
-
-  @media (max-width:480px){
-    .stats{grid-template-columns:1fr;}
+    /* Table becomes a stacked card list, matching the doc-card look on Documents */
+    .table-wrap{background:transparent; border:none; box-shadow:none; overflow:visible;}
+    table, tbody{display:block; width:100%;}
+    thead{display:none;}
+    tbody tr{
+      display:block;
+      background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+      border:1px solid var(--border-soft); border-radius:var(--radius-md);
+      padding:16px 18px; margin-bottom:12px; box-shadow:var(--shadow-soft);
+    }
+    tbody tr:last-child{margin-bottom:0;}
+    tbody td{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:6px 0; border-bottom:none; font-size:13.5px;
+    }
+    tbody td::before{
+      content:attr(data-label); font-size:11px; font-weight:600; text-transform:uppercase;
+      letter-spacing:0.4px; color:var(--text-muted);
+    }
+    tbody td.cell-recipient{
+      flex-direction:column; align-items:flex-start; gap:2px; padding-bottom:10px;
+      border-bottom:1px solid var(--border-soft); margin-bottom:6px;
+    }
+    tbody td.cell-recipient::before{display:none;}
+    tbody td.cell-recipient strong{font-size:15px;}
+    tbody td:last-child{padding-top:10px; margin-top:4px; border-top:1px solid var(--border-soft);}
+    tbody td:last-child::before{display:none;}
+    tbody .row-actions{justify-content:flex-end; width:100%;}
   }
 </style>
 </head>
@@ -695,11 +712,11 @@
           <strong>${escapeHtml(p.recipient)}</strong>
           <span class="ref">${escapeHtml(p.reference || '—')}</span>
         </td>
-        <td>${escapeHtml(p.category)}</td>
-        <td class="amount">${currency(p.amount)}</td>
-        <td>${formatDate(p.date)}</td>
-        <td>${escapeHtml(p.method)}</td>
-        <td><span class="pill ${p.status}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span></td>
+        <td data-label="Category">${escapeHtml(p.category)}</td>
+        <td class="amount" data-label="Amount">${currency(p.amount)}</td>
+        <td data-label="Due Date">${formatDate(p.date)}</td>
+        <td data-label="Method">${escapeHtml(p.method)}</td>
+        <td data-label="Status"><span class="pill ${p.status}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span></td>
         <td>
           <div class="row-actions">
             <button class="icon-btn" data-edit="${p.id}" aria-label="Edit payment">
