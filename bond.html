@@ -275,6 +275,32 @@
     .main{padding:24px 18px 50px;}
     .stats{grid-template-columns:1fr 1fr;}
     .field-row{grid-template-columns:1fr;}
+
+    /* Table becomes a stacked card list, matching the doc-card look on Documents */
+    .table-wrap{background:transparent; border:none; box-shadow:none; overflow:visible;}
+    table, tbody{display:block; width:100%;}
+    thead{display:none;}
+    tbody tr{
+      display:block;
+      background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+      border:1px solid var(--border-soft); border-radius:var(--radius-md);
+      padding:16px 18px; margin-bottom:12px; box-shadow:var(--shadow-soft);
+    }
+    tbody tr:last-child{margin-bottom:0;}
+    tbody td{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:6px 0; border-bottom:none; font-size:13.5px;
+    }
+    tbody td::before{
+      content:attr(data-label); font-size:11px; font-weight:600; text-transform:uppercase;
+      letter-spacing:0.4px; color:var(--text-muted);
+    }
+    tbody td:first-child{
+      padding-bottom:10px; border-bottom:1px solid var(--border-soft); margin-bottom:6px;
+    }
+    tbody td:last-child{padding-top:10px; margin-top:4px; border-top:1px solid var(--border-soft);}
+    tbody td:last-child::before{display:none;}
+    tbody .row-actions{justify-content:flex-end; width:100%;}
   }
 </style>
 </head>
@@ -647,10 +673,10 @@
 
     tableBody.innerHTML = list.map(p => `
       <tr>
-        <td>${formatDate(p.date)}</td>
-        <td><span class="type-pill ${p.type === 'Extra Payment' ? 'extra' : 'installment'}">${escapeHtml(p.type)}</span></td>
-        <td class="amount">${currency(p.amount)}</td>
-        <td class="cell-notes">${escapeHtml(p.notes||'—')}</td>
+        <td data-label="Date">${formatDate(p.date)}</td>
+        <td data-label="Type"><span class="type-pill ${p.type === 'Extra Payment' ? 'extra' : 'installment'}">${escapeHtml(p.type)}</span></td>
+        <td class="amount" data-label="Amount">${currency(p.amount)}</td>
+        <td class="cell-notes" data-label="Notes">${escapeHtml(p.notes||'—')}</td>
         <td>
           <div class="row-actions">
             <button class="icon-btn" data-edit="${p.id}" aria-label="Edit payment">
@@ -800,4 +826,3 @@
 </script>
 </body>
 </html>
-
