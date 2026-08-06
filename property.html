@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -155,6 +154,43 @@
   .section-heading{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
   .section-heading h2{font-size:17px; margin:0; font-weight:700;}
   .section-heading p{margin:2px 0 0; font-size:13px; color:var(--text-secondary);}
+
+  /* chore list */
+  .chore-box{
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-md);
+    padding:18px 20px; margin-bottom:8px;
+  }
+  .chore-add-row{display:flex; gap:10px; margin-bottom:14px;}
+  .chore-add-row input{flex:1;}
+  .chore-list{display:flex; flex-direction:column; gap:8px;}
+  .chore-row{
+    display:flex; align-items:center; gap:12px; padding:10px 12px;
+    background:var(--panel); border:1px solid var(--border-soft); border-radius:9px;
+    font-size:13.5px; transition:border-color .15s ease, opacity .15s ease;
+  }
+  .chore-row:hover{border-color:rgba(255,255,255,0.15);}
+  .chore-row.done{opacity:0.55;}
+  .chore-num{
+    font-family:'JetBrains Mono'; font-size:12px; color:var(--text-muted);
+    width:20px; flex-shrink:0; text-align:right;
+  }
+  .chore-check{
+    width:19px; height:19px; border-radius:5px; border:1.5px solid var(--border);
+    background:var(--panel-alt); flex-shrink:0; cursor:pointer; display:flex;
+    align-items:center; justify-content:center; padding:0; transition:background .12s ease, border-color .12s ease;
+  }
+  .chore-check svg{width:11px; height:11px; opacity:0; color:#08101f;}
+  .chore-row.done .chore-check{background:var(--success); border-color:var(--success);}
+  .chore-row.done .chore-check svg{opacity:1;}
+  .chore-text{
+    flex:1; cursor:text; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .chore-row.done .chore-text{text-decoration:line-through; color:var(--text-muted);}
+  .chore-text-input{
+    flex:1; background:var(--panel-alt); border:1px solid var(--accent); color:var(--text-primary);
+    padding:4px 8px; border-radius:6px; font-size:13.5px; font-family:inherit;
+  }
 
   /* project cards */
   .project-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px; margin-bottom:40px;}
@@ -525,6 +561,25 @@
 
       <div class="section-heading">
         <div>
+          <h2>Chore List</h2>
+          <p>Build your day's to-do list ahead of time — tick items off as you work through them.</p>
+        </div>
+      </div>
+      <div class="chore-box">
+        <div class="chore-add-row">
+          <input type="text" id="choreInput" placeholder="Add a chore…" maxlength="200">
+          <button class="btn btn-primary" id="addChoreBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            Add
+          </button>
+        </div>
+        <div class="chore-list" id="choreList"></div>
+      </div>
+
+      <div class="ledger-stitch"></div>
+
+      <div class="section-heading">
+        <div>
           <h2>Projects</h2>
           <p>Click a project to see its timeline, expenses, and receipts.</p>
         </div>
@@ -676,6 +731,7 @@
   let currentReceipts = [];
   let receiptThumbs = {};
   let selectedExpenseId = null;
+  let chores = [];
 
   function showToast(msg){
     const toast = el('toast');
@@ -703,6 +759,95 @@
   function statusClass(status){
     return (status||'Planning').toLowerCase().replace(/\s+/g, '-');
   }
+
+  // ---- Chore list ----
+  async function loadChores(){
+    const { data, error } = await supabaseClient
+      .from('property_chores').select('*').order('created_at', { ascending: true });
+    if(error){ showToast('Error loading chore list'); console.error(error); return; }
+    chores = data;
+    renderChoreList();
+  }
+  function renderChoreList(){
+    const list = el('choreList');
+    if(chores.length === 0){
+      list.innerHTML = '<div class="no-items">No chores added yet — add your first one above.</div>';
+      return;
+    }
+    list.innerHTML = chores.map((c, idx) => `
+      <div class="chore-row ${c.is_done ? 'done' : ''}" data-chore="${c.id}">
+        <span class="chore-num">${idx + 1}.</span>
+        <button class="chore-check" data-chore-toggle="${c.id}" aria-label="Mark done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+        </button>
+        <span class="chore-text" data-chore-text="${c.id}" title="Click to edit">${escapeHtml(c.text)}</span>
+        <button class="icon-btn danger" data-chore-del="${c.id}" aria-label="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+  async function addChore(){
+    const input = el('choreInput');
+    const text = input.value.trim();
+    if(!text) return;
+    const { error } = await supabaseClient.from('property_chores').insert({ text, is_done: false });
+    if(error){ showToast('Could not add chore'); console.error(error); return; }
+    input.value = '';
+    await loadChores();
+  }
+  el('addChoreBtn').addEventListener('click', addChore);
+  el('choreInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') addChore(); });
+
+  el('choreList').addEventListener('click', async (e) => {
+    const toggleBtn = e.target.closest('[data-chore-toggle]');
+    const delBtn = e.target.closest('[data-chore-del]');
+    const textSpan = e.target.closest('[data-chore-text]');
+
+    if(toggleBtn){
+      const chore = chores.find(c => c.id === toggleBtn.dataset.choreToggle);
+      if(!chore) return;
+      const { error } = await supabaseClient.from('property_chores').update({ is_done: !chore.is_done }).eq('id', chore.id);
+      if(error){ showToast('Could not update chore'); console.error(error); return; }
+      await loadChores();
+      return;
+    }
+    if(delBtn){
+      const { error } = await supabaseClient.from('property_chores').delete().eq('id', delBtn.dataset.choreDel);
+      if(error){ showToast('Could not remove chore'); console.error(error); return; }
+      await loadChores();
+      return;
+    }
+    if(textSpan){
+      const chore = chores.find(c => c.id === textSpan.dataset.choreText);
+      if(!chore) return;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'chore-text-input';
+      input.value = chore.text;
+      input.maxLength = 200;
+      textSpan.replaceWith(input);
+      input.focus();
+      input.select();
+
+      let committed = false;
+      const commit = async () => {
+        if(committed) return;
+        committed = true;
+        const newText = input.value.trim();
+        if(newText && newText !== chore.text){
+          const { error } = await supabaseClient.from('property_chores').update({ text: newText }).eq('id', chore.id);
+          if(error){ showToast('Could not update chore'); console.error(error); }
+        }
+        await loadChores();
+      };
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', (ev) => {
+        if(ev.key === 'Enter'){ input.blur(); }
+        if(ev.key === 'Escape'){ input.value = chore.text; input.blur(); }
+      });
+    }
+  });
 
   // ---- Projects ----
   async function loadProjects(){
@@ -1147,6 +1292,7 @@
 
   loadProjects();
   loadIdeas();
+  loadChores();
 })();
 </script>
 </body>
