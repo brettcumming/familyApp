@@ -131,11 +131,11 @@
 
   /* Planner tile — sits between the hero and the card grid, grows horizontally */
   .planner-tile{
-    width:fit-content; max-width:640px; min-width:340px; margin-bottom:40px;
-    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
-    border:1px solid var(--border-soft); border-radius:var(--radius-lg);
-    padding:14px 20px; position:relative; overflow:hidden;
-  }
+  width:fit-content; margin:0 auto 40px;
+  background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+  border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+  padding:14px 20px; position:relative; overflow:hidden;
+}
   .planner-tile::before{
     content:""; position:absolute; top:-60%; right:-6%; width:320px; height:120px;
     background:radial-gradient(circle, rgba(76,124,240,0.14), transparent 70%);
@@ -153,20 +153,19 @@
   .planner-add-btn svg{width:14px; height:14px;}
 
   .planner-header-actions{display:flex; align-items:center; gap:8px;}
-.planner-counter{font-size:11.5px; color:var(--text-muted); margin-right:2px; white-space:nowrap;}
-.planner-nav-btn{
-  width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
-  background:var(--panel); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer;
-  transition:background .12s ease, color .12s ease; flex-shrink:0;
-}
+  .planner-counter{font-size:11.5px; color:var(--text-muted); margin-right:2px; white-space:nowrap;}
+  .planner-nav-btn{
+    width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    background:var(--panel); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer;
+    transition:background .12s ease, color .12s ease; flex-shrink:0;
+  }
 .planner-nav-btn:hover{background:var(--panel-alt); color:var(--text-primary);}
 .planner-nav-btn svg{width:14px; height:14px;}
 
 .planner-list{
-  position:relative; height:192px;
+  position:relative; width:280px; height:192px;
   overflow:hidden;
 }
-  
 .planner-event{
   position:absolute; top:0; left:0; width:280px; height:108px;
   display:flex; flex-direction:column; gap:5px; justify-content:center;
@@ -264,9 +263,9 @@
     .hero{margin-bottom:32px;}
     .grid{grid-template-columns:repeat(2, 1fr); gap:10px;}
     .card{height:auto; min-height:112px; padding:18px;}
-    .planner-tile{width:100%; min-width:0; margin-bottom:28px; padding:14px 16px;}
+    .planner-tile{width:fit-content; max-width:100%; margin:0 auto 28px; padding:14px 16px;}
     .planner-header{flex-wrap:wrap; row-gap:10px;}
-    .planner-list{height:176px;}
+    .planner-list{width:220px; height:176px;}
     .planner-event{width:220px; height:92px; padding:7px 12px; gap:3px;}
     .planner-event-date{font-size:10px;}
     .planner-event-title{font-size:12px;}
