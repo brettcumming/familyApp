@@ -588,7 +588,7 @@
   function computeStyle(depth){
     const capped = Math.min(depth, 3);
     const z = 100 - capped;
-    const translateY = capped * 40;
+    const translateY = capped * 30;
     const scale = Math.max(1 - capped * 0.015, 0.9);
     const opacity = capped === 0 ? 1 : Math.max(1 - capped * 0.09, 0.32);
     const pe = capped <= 3 ? 'auto' : 'none';
