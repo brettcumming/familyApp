@@ -131,11 +131,11 @@
 
   /* Planner tile — sits between the hero and the card grid, grows horizontally */
   .planner-tile{
-  width:fit-content; max-width:100%; min-width:340px; margin-bottom:40px;
-  background:linear-gradient(160deg, var(--panel), var(--panel-alt));
-  border:1px solid var(--border-soft); border-radius:var(--radius-lg);
-  padding:14px 20px; position:relative; overflow:hidden;
-}
+    width:fit-content; max-width:640px; min-width:340px; margin-bottom:40px;
+    background:linear-gradient(160deg, var(--panel), var(--panel-alt));
+    border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+    padding:14px 20px; position:relative; overflow:hidden;
+  }
   .planner-tile::before{
     content:""; position:absolute; top:-60%; right:-6%; width:320px; height:120px;
     background:radial-gradient(circle, rgba(76,124,240,0.14), transparent 70%);
@@ -155,7 +155,9 @@
   .planner-list{
     display:flex; flex-direction:row; gap:14px; position:relative;
     overflow-x:auto; padding-bottom:6px;
+    scroll-snap-type:x mandatory; scroll-behavior:smooth; -webkit-overflow-scrolling:touch;
   }
+  
   .planner-list::-webkit-scrollbar{height:6px;}
   .planner-list::-webkit-scrollbar-thumb{background:var(--border); border-radius:10px;}
 
@@ -164,7 +166,9 @@
     padding:8px 16px; border-radius:11px;
     background:var(--bg-elevated); border:1px solid var(--border-soft);
     transition:transform .15s ease;
+    scroll-snap-align:start;
   }
+  
   .planner-event:hover{transform:translateY(-2px);}
   .planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
   .planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
