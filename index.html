@@ -163,17 +163,19 @@
 .planner-nav-btn svg{width:14px; height:14px;}
 
 .planner-list{
-  position:relative; height:150px;
+  position:relative; height:192px;
   overflow:hidden;
 }
+  
 .planner-event{
-  position:absolute; top:0; left:0; right:0; height:108px;
+  position:absolute; top:0; left:0; width:280px; height:108px;
   display:flex; flex-direction:column; gap:5px; justify-content:center;
   padding:8px 16px; border-radius:11px;
   background:var(--bg-elevated); border:1px solid var(--border-soft);
   transition:transform .25s ease, opacity .25s ease;
   cursor:pointer;
 }
+  
 .planner-event[data-depth="0"]{cursor:default;}
 .planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
 .planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
@@ -264,12 +266,8 @@
     .card{height:auto; min-height:112px; padding:18px;}
     .planner-tile{width:100%; min-width:0; margin-bottom:28px; padding:14px 16px;}
     .planner-header{flex-wrap:wrap; row-gap:10px;}
-    .planner-list{height:132px;}
-    .planner-event{height:92px; padding:7px 12px; gap:3px;}
-    .planner-event-date{font-size:10px;}
-    .planner-event-title{font-size:12px;}
-    .planner-event-meta{font-size:9.5px;}
-    .planner-dot{width:8px; height:8px;}
+    .planner-list{height:176px;}
+    .planner-event{width:220px; height:92px; padding:7px 12px; gap:3px;}
     .planner-event-date{font-size:10px;}
     .planner-event-title{font-size:12px;}
     .planner-event-meta{font-size:9.5px;}
@@ -583,12 +581,12 @@
   }
 
   function computeStyle(depth){
-    const capped = Math.min(depth, 6);
+    const capped = Math.min(depth, 7);
     const z = 100 - capped;
-    const translateY = capped * 10;
+    const translateY = capped * 12;
     const scale = Math.max(1 - capped * 0.015, 0.9);
-    const opacity = capped === 0 ? 1 : Math.max(1 - capped * 0.12, 0.35);
-    const pe = capped <= 6 ? 'auto' : 'none';
+    const opacity = capped === 0 ? 1 : Math.max(1 - capped * 0.09, 0.32);
+    const pe = capped <= 7 ? 'auto' : 'none';
     return { z, translateY, scale, opacity, pe };
   }
 
