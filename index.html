@@ -554,11 +554,13 @@
         <div class="planner-event-date"><span class="day">${day}</span> · ${weekday}</div>
       </div>
       <div class="planner-event-title">${escapeHtml(e.title)}</div>
-      <div class="planner-event-meta">${escapeHtml(e.category)}${e.event_time ? ' · ' + e.event_time.slice(0,5) : ''} · ${relativeLabel(e.event_date)}</div>
-      
+      <div class="planner-event-meta">${escapeHtml(e.category)}${e.event_time ? ' · ' + e.event_time.slice(0,5) : ''} · ${relativeLabel(e.event_date)}
         <button class="planner-del-btn" data-del="${e.id}" aria-label="Delete">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
         </button>
+      </div>
+      
+        
    
     `;
     return div;
