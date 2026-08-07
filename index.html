@@ -152,57 +152,60 @@
   .planner-add-btn:hover{background:rgba(76,124,240,0.22);}
   .planner-add-btn svg{width:14px; height:14px;}
 
-  .planner-list{
-    display:flex; flex-direction:row; gap:14px; position:relative;
-    overflow-x:auto; padding-bottom:6px;
-    scroll-snap-type:x mandatory; scroll-behavior:smooth; -webkit-overflow-scrolling:touch;
-  }
-  
-  .planner-list::-webkit-scrollbar{height:6px;}
-  .planner-list::-webkit-scrollbar-thumb{background:var(--border); border-radius:10px;}
+  .planner-header-actions{display:flex; align-items:center; gap:8px;}
+.planner-counter{font-size:11.5px; color:var(--text-muted); margin-right:2px; white-space:nowrap;}
+.planner-nav-btn{
+  width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+  background:var(--panel); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer;
+  transition:background .12s ease, color .12s ease; flex-shrink:0;
+}
+.planner-nav-btn:hover{background:var(--panel-alt); color:var(--text-primary);}
+.planner-nav-btn svg{width:14px; height:14px;}
 
-  .planner-event{
-    flex:0 0 240px; display:flex; flex-direction:column; gap:5px;
-    padding:8px 16px; border-radius:11px;
-    background:var(--bg-elevated); border:1px solid var(--border-soft);
-    transition:transform .15s ease;
-    scroll-snap-align:start;
-  }
-  
-  .planner-event:hover{transform:translateY(-2px);}
-  .planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
-  .planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
-  .planner-event.glow-yellow{border-color:rgba(240,224,76,0.4); box-shadow:0 0 18px -6px rgba(240,224,76,0.5);}
-  .planner-event.glow-green{border-color:rgba(51,214,166,0.4); box-shadow:0 0 18px -6px rgba(51,214,166,0.5);}
+.planner-list{
+  position:relative; height:150px;
+  overflow:hidden;
+}
+.planner-event{
+  position:absolute; top:0; left:0; right:0; height:108px;
+  display:flex; flex-direction:column; gap:5px; justify-content:center;
+  padding:8px 16px; border-radius:11px;
+  background:var(--bg-elevated); border:1px solid var(--border-soft);
+  transition:transform .25s ease, opacity .25s ease;
+  cursor:pointer;
+}
+.planner-event[data-depth="0"]{cursor:default;}
+.planner-event.glow-red{border-color:rgba(240,102,76,0.4); box-shadow:0 0 18px -6px rgba(240,102,76,0.5);}
+.planner-event.glow-orange{border-color:rgba(240,184,76,0.4); box-shadow:0 0 18px -6px rgba(240,184,76,0.5);}
+.planner-event.glow-yellow{border-color:rgba(240,224,76,0.4); box-shadow:0 0 18px -6px rgba(240,224,76,0.5);}
+.planner-event.glow-green{border-color:rgba(51,214,166,0.4); box-shadow:0 0 18px -6px rgba(51,214,166,0.5);}
 
-  .planner-event-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
-  .planner-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
-  .planner-dot.glow-red{background:var(--danger); box-shadow:0 0 10px 2px rgba(240,102,76,0.7);}
-  .planner-dot.glow-orange{background:var(--warning); box-shadow:0 0 10px 2px rgba(240,184,76,0.7);}
-  .planner-dot.glow-yellow{background:#f0e04c; box-shadow:0 0 10px 2px rgba(240,224,76,0.7);}
-  .planner-dot.glow-green{background:var(--success); box-shadow:0 0 10px 2px rgba(51,214,166,0.7);}
+.planner-event-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.planner-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+.planner-dot.glow-red{background:var(--danger); box-shadow:0 0 10px 2px rgba(240,102,76,0.7);}
+.planner-dot.glow-orange{background:var(--warning); box-shadow:0 0 10px 2px rgba(240,184,76,0.7);}
+.planner-dot.glow-yellow{background:#f0e04c; box-shadow:0 0 10px 2px rgba(240,224,76,0.7);}
+.planner-dot.glow-green{background:var(--success); box-shadow:0 0 10px 2px rgba(51,214,166,0.7);}
 
-  .planner-event-date{
-    font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-secondary); flex-shrink:0;
-  }
-  .planner-event-date .day{font-weight:700; color:var(--text-primary);}
+.planner-event-date{font-family:'JetBrains Mono'; font-size:11.5px; color:var(--text-secondary); flex-shrink:0;}
+.planner-event-date .day{font-weight:700; color:var(--text-primary);}
 
-  .planner-event-title{
-    font-size:13.5px; font-weight:600; color:var(--text-primary);
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .planner-event-meta{font-size:11px; color:var(--text-muted);}
+.planner-event-title{
+  font-size:13.5px; font-weight:600; color:var(--text-primary);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.planner-event-meta{font-size:11px; color:var(--text-muted);}
 
-  .planner-event-footer{display:flex; align-items:center; justify-content:space-between; gap:8px;}
-  .planner-del-btn{
-    width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center;
-    background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer; flex-shrink:0;
-    transition:background .12s ease, color .12s ease; margin-left:auto;
-  }
-  .planner-del-btn:hover{background:var(--panel); color:var(--danger);}
-  .planner-del-btn svg{width:12px; height:12px;}
+.planner-event-footer{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.planner-del-btn{
+  width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+  background:transparent; border:1px solid transparent; color:var(--text-muted); cursor:pointer; flex-shrink:0;
+  transition:background .12s ease, color .12s ease; margin-left:auto;
+}
+.planner-del-btn:hover{background:var(--panel); color:var(--danger);}
+.planner-del-btn svg{width:12px; height:12px;}
 
-  .planner-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:16px 0; flex:1;}
+.planner-empty{font-size:13px; color:var(--text-muted); text-align:center; padding:16px 0; flex:1;}
 
   /* Drawer / overlay / toast (shared pattern) */
   .overlay{
@@ -261,11 +264,12 @@
     .card{height:auto; min-height:112px; padding:18px;}
     .planner-tile{width:100%; min-width:0; margin-bottom:28px; padding:14px 16px;}
     .planner-header{flex-wrap:wrap; row-gap:10px;}
-    .planner-event{
-      flex:0 0 168px;
-      padding:7px 12px;
-      gap:3px;
-    }
+    .planner-list{height:132px;}
+    .planner-event{height:92px; padding:7px 12px; gap:3px;}
+    .planner-event-date{font-size:10px;}
+    .planner-event-title{font-size:12px;}
+    .planner-event-meta{font-size:9.5px;}
+    .planner-dot{width:8px; height:8px;}
     .planner-event-date{font-size:10px;}
     .planner-event-title{font-size:12px;}
     .planner-event-meta{font-size:9.5px;}
@@ -304,15 +308,24 @@
 
   <div class="planner-tile">
     <div class="planner-header">
-      <div>
-        <h2>Upcoming</h2>
-        <p>Things to remember.</p>
-      </div>
-      <button class="planner-add-btn" id="plannerAddBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-        Add
-      </button>
-    </div>
+  <div>
+    <h2>Upcoming</h2>
+    <p>Appointments, reminders, birthdays, and events for the family.</p>
+  </div>
+  <div class="planner-header-actions">
+    <span class="planner-counter" id="plannerCounter"></span>
+    <button class="planner-nav-btn" id="plannerPrevBtn" aria-label="Previous">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <button class="planner-nav-btn" id="plannerNextBtn" aria-label="Next">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
+    <button class="planner-add-btn" id="plannerAddBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Add
+    </button>
+  </div>
+</div>
     <div class="planner-list" id="plannerList"></div>
   </div>  
 
@@ -483,6 +496,8 @@
   };
 
   let events = [];
+  let order = [];
+  let cardEls = new Map();
 
   function showToast(msg){
     const toast = el('toast');
@@ -523,45 +538,120 @@
       .limit(12);
     if(error){ showToast('Error loading events'); console.error(error); return; }
     events = data;
-    render();
+    rebuildCards();
   }
 
-  function render(){
+  function buildCardElement(e){
+    const glow = CATEGORY_GLOW[e.category] || 'glow-orange';
+    const { day, weekday } = formatEventDate(e.event_date);
+    const div = document.createElement('div');
+    div.className = `planner-event ${glow}`;
+    div.dataset.id = e.id;
+    div.innerHTML = `
+      <div class="planner-event-top">
+        <div class="planner-dot ${glow}"></div>
+        <div class="planner-event-date"><span class="day">${day}</span> · ${weekday}</div>
+      </div>
+      <div class="planner-event-title">${escapeHtml(e.title)}</div>
+      <div class="planner-event-meta">${escapeHtml(e.category)}${e.event_time ? ' · ' + e.event_time.slice(0,5) : ''} · ${relativeLabel(e.event_date)}</div>
+      <div class="planner-event-footer">
+        <button class="planner-del-btn" data-del="${e.id}" aria-label="Delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+        </button>
+      </div>
+    `;
+    return div;
+  }
+
+  function rebuildCards(){
     const list = el('plannerList');
+    list.innerHTML = '';
+    cardEls.clear();
     if(events.length === 0){
       list.innerHTML = '<div class="planner-empty">Nothing coming up — click Add to schedule something.</div>';
+      order = [];
+      updateCounter();
       return;
     }
-    list.innerHTML = events.map(e => {
-      const glow = CATEGORY_GLOW[e.category] || 'glow-orange';
-      const { day, weekday } = formatEventDate(e.event_date);
-      return `
-        <div class="planner-event ${glow}">
-          <div class="planner-event-top">
-            <div class="planner-dot ${glow}"></div>
-            <div class="planner-event-date"><span class="day">${day}</span> · ${weekday}</div>
-          </div>
-          <div class="planner-event-title">${escapeHtml(e.title)}</div>
-          <div class="planner-event-meta">${escapeHtml(e.category)}${e.event_time ? ' · ' + e.event_time.slice(0,5) : ''} · ${relativeLabel(e.event_date)}</div>
-          <div class="planner-event-footer">
-            <button class="planner-del-btn" data-del="${e.id}" aria-label="Delete">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
+    events.forEach(e => {
+      const cardEl = buildCardElement(e);
+      cardEls.set(e.id, cardEl);
+      list.appendChild(cardEl);
+    });
+    order = events.map((_, i) => i);
+    applyStack();
+  }
+
+  function computeStyle(depth){
+    const capped = Math.min(depth, 6);
+    const z = 100 - capped;
+    const translateY = capped * 10;
+    const scale = Math.max(1 - capped * 0.015, 0.9);
+    const opacity = capped === 0 ? 1 : Math.max(1 - capped * 0.12, 0.35);
+    const pe = capped <= 6 ? 'auto' : 'none';
+    return { z, translateY, scale, opacity, pe };
+  }
+
+  function applyStack(){
+    order.forEach((eventIdx, depth) => {
+      const ev = events[eventIdx];
+      const cardEl = cardEls.get(ev.id);
+      if(!cardEl) return;
+      const { z, translateY, scale, opacity, pe } = computeStyle(depth);
+      cardEl.style.zIndex = z;
+      cardEl.style.transform = `translateY(${translateY}px) scale(${scale})`;
+      cardEl.style.opacity = opacity;
+      cardEl.style.pointerEvents = pe;
+      cardEl.dataset.depth = depth;
+    });
+    updateCounter();
+  }
+
+  function updateCounter(){
+    const counter = el('plannerCounter');
+    if(!counter) return;
+    counter.textContent = events.length ? `${events.length} upcoming` : '';
+  }
+
+  function promote(id){
+    const idx = events.findIndex(ev => ev.id === id);
+    if(idx === -1) return;
+    const posInOrder = order.indexOf(idx);
+    if(posInOrder <= 0) return;
+    order.splice(posInOrder, 1);
+    order.unshift(idx);
+    applyStack();
+  }
+
+  function nextCard(){
+    if(order.length < 2) return;
+    order.push(order.shift());
+    applyStack();
+  }
+  function prevCard(){
+    if(order.length < 2) return;
+    order.unshift(order.pop());
+    applyStack();
   }
 
   el('plannerList').addEventListener('click', async (e) => {
     const delBtn = e.target.closest('[data-del]');
-    if(!delBtn) return;
-    if(!confirm('Remove this event? This can\'t be undone.')) return;
-    const { error } = await supabaseClient.from('calendar_events').delete().eq('id', delBtn.dataset.del);
-    if(error){ showToast('Could not delete event'); console.error(error); return; }
-    await loadEvents();
-    showToast('Event removed');
+    if(delBtn){
+      if(!confirm('Remove this event? This can\'t be undone.')) return;
+      const { error } = await supabaseClient.from('calendar_events').delete().eq('id', delBtn.dataset.del);
+      if(error){ showToast('Could not delete event'); console.error(error); return; }
+      await loadEvents();
+      showToast('Event removed');
+      return;
+    }
+    const card = e.target.closest('.planner-event');
+    if(card && card.dataset.depth !== '0'){
+      promote(card.dataset.id);
+    }
   });
+
+  el('plannerPrevBtn').addEventListener('click', prevCard);
+  el('plannerNextBtn').addEventListener('click', nextCard);
 
   function openDrawer(){
     el('drawerTitle').textContent = 'Add Event';
